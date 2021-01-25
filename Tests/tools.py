@@ -14,11 +14,11 @@ def run_with_proxy_configured(function: Callable) -> Callable:
     def decorated(build, *args, **kwargs):
         build.proxy.configure_proxy_in_demisto(proxy=build.proxy.ami.internal_ip + ':' + build.proxy.PROXY_PORT,
                                                username=build.username, password=build.password,
-                                               server=build.servers[0].host)
+                                               server=build.servers[0].internal_ip)
         result = function(build, *args, **kwargs)
         build.proxy.configure_proxy_in_demisto(proxy='',
                                                username=build.username, password=build.password,
-                                               server=build.servers[0].host)
+                                               server=build.servers[0].internal_ip)
         return result
 
     return decorated
