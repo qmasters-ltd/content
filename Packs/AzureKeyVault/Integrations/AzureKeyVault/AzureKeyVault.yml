@@ -48,7 +48,8 @@ script:
       secret: false
     - auto: PREDEFINED
       default: false
-      description: Key Vault supported Azure location. Default value is 'westus'.
+      description: Key Vault supported Azure location. The location cannot be changed
+        after the Key Vault is created. Default value is 'westus'.
       isArray: false
       name: location
       predefined:
@@ -131,17 +132,19 @@ script:
       required: false
       secret: false
     - default: false
-      description: The object ID of a user, service principal or security group in
+      description: 'The object ID of a user, service principal or security group in
         the Azure Active Directory tenant for the vault. The object ID must be unique
-        for the list of access policies.
+        for the list of access policies: Any change in the access policy regards that
+        object ID, will override the exists one. '
       isArray: false
       name: object_id
       required: true
       secret: false
     - auto: PREDEFINED
       default: false
-      description: 'Permissions to keys. Access policy property. Default value is
-        [get,list,create,update,import,delete,backup,restore,recover]. '
+      description: 'Permissions to keys. If the Key Vault exists, you must supply
+        the previous keys permissions inorder to keep them the same. Access policy
+        property. Default value is [get,list,create,update,import,delete,backup,restore,recover]. '
       isArray: true
       name: keys
       predefined:
@@ -165,8 +168,9 @@ script:
       secret: false
     - auto: PREDEFINED
       default: false
-      description: Permissions to secrets. Access policy property. Default value is
-        [get,list,set,delete,backup,restore,recover]
+      description: Permissions to secrets. If the Key Vault exists, you must supply
+        the previous secrets permissions inorder to keep them the same. Access policy
+        property. Default value is [get,list,set,delete,backup,restore,recover].
       isArray: true
       name: secrets
       predefined:
@@ -182,8 +186,9 @@ script:
       secret: false
     - auto: PREDEFINED
       default: false
-      description: Permissions to certificates. Access policy property. Default value
-        is [get,list,update,create,import,delete,recover,backup,restore,managecontacts,manageissuers,getissuers,listissuers,setissuers,deleteissuers]
+      description: Permissions to certificates. If the Key Vault exists, you must
+        supply the previous secret permissions inorder to keep them the same. Access
+        policy property. Default value is [get,list,update,create,import,delete,recover,backup,restore,managecontacts,manageissuers,getissuers,listissuers,setissuers,deleteissuers].
       isArray: true
       name: certificates
       predefined:
@@ -208,7 +213,9 @@ script:
     - auto: PREDEFINED
       default: false
       description: Specifies whether Azure Virtual Machines are permitted to retrieve
-        certificates stored as secrets from the key vault. Default value is True.
+        certificates stored as secrets from the key vault. If the Key Vault exists,
+        you must supply the previous value inorder to keep it the same. Default value
+        is True.
       isArray: false
       name: enabled_for_deployment
       predefined:
@@ -219,7 +226,8 @@ script:
     - auto: PREDEFINED
       default: false
       description: Specifies whether Azure Disk Encryption is permitted to retrieve
-        secrets from the vault and unwrap keys. Default value is True.
+        secrets from the vault and unwrap keys.If the Key Vault exists, you must supply
+        the previous value inorder to keep it the same. Default value is True.
       isArray: false
       name: enabled_for_disk_encryption
       predefined:
@@ -230,7 +238,8 @@ script:
     - auto: PREDEFINED
       default: false
       description: Specifies whether Azure Resource Manager is permitted to retrieve
-        secrets from the key vault. Default value is True.
+        secrets from the key vault. If the Key Vault exists, you must supply the previous
+        value inorder to keep it the same. Default value is True.
       isArray: false
       name: enabled_for_template_deployment
       predefined:
@@ -291,72 +300,11 @@ script:
       name: storage
       required: false
       secret: false
-    - default: false
-      description: Full identifier of the private endpoint resource. Private Endpoint
-        Connection property.
-      isArray: false
-      name: private_endpoint_id
-      required: false
-      secret: false
-    - auto: PREDEFINED
-      default: false
-      description: Provisioning state of the private endpoint connection. Private
-        Endpoint Connection property.
-      isArray: false
-      name: provisioning_state
-      predefined:
-      - Creating
-      - Deleting
-      - Disconnected
-      - Failed
-      - Succeeded
-      - Updating
-      required: false
-      secret: false
-    - default: false
-      description: A message indicating if changes on the service provider require
-        any updates on the consumer. Private Endpoint Connection property.
-      isArray: false
-      name: private_link_actions_required
-      required: false
-      secret: false
-    - default: false
-      description: The reason for approval or rejection. Private Endpoint Connection
-        property.
-      isArray: false
-      name: private_link_description
-      required: false
-      secret: false
-    - auto: PREDEFINED
-      default: false
-      description: Indicates whether the connection has been approved, rejected or
-        removed by the key vault owner. Private Endpoint Connection property.
-      isArray: false
-      name: private_link_status
-      predefined:
-      - Approved
-      - Disconnected
-      - Pending
-      - Rejected
-      required: false
-      secret: false
-    - default: false
-      description: Modified whenever there is a change in the state of private endpoint
-        connection. Private Endpoint Connection property.
-      isArray: false
-      name: private_endpoint_connection_etag
-      required: false
-      secret: false
-    - default: false
-      description: Private endpoint connection ID. Private Endpoint Connection property.
-      isArray: false
-      name: private_endpoint_connection_id
-      required: false
-      secret: false
     deprecated: false
-    description: Create or update a key vault in the specified subscription.
+    description: Create or update a key vault in the specified subscription. If the
+      Key Vault exists, the updated key will overwrite the existing one.
     execution: false
-    name: azure-key-vault-key-vault-create-or-update
+    name: azure-key-vault-create-update
     outputs:
     - contextPath: AzureKeyVault.KeyVault.id
       description: Resource id.
@@ -431,7 +379,7 @@ script:
     deprecated: false
     description: Delete the specified key vault.
     execution: true
-    name: azure-key-vault-key-vault-delete
+    name: azure-key-delete
   - arguments:
     - default: false
       description: Key Vault name.
@@ -442,7 +390,7 @@ script:
     deprecated: false
     description: Get the specified key vault.
     execution: false
-    name: azure-key-vault-key-vault-get
+    name: azure-key-vault-get
     outputs:
     - contextPath: AzureKeyVault.KeyVault.id
       description: Resource ID.
@@ -523,9 +471,11 @@ script:
       secret: false
     deprecated: false
     description: The List operation gets information about the vaults associated with
-      the subscription.
+      the subscription. Please note that the bigger the limit, the longer time you
+      might wait for the result to retrieve (since an API call is made for each 25
+      results).
     execution: false
-    name: azure-key-vault-key-vault-list
+    name: azure-key-vault-list
     outputs:
     - contextPath: AzureKeyVault.KeyVault.id
       description: Resource ID.
@@ -687,7 +637,7 @@ script:
     deprecated: false
     description: Update access policy of a key vault in the specified subscription.
     execution: false
-    name: azure-key-vault-key-vault-access-policy-update
+    name: azure-key-vault-access-policy-update
     outputs:
     - contextPath: AzureKeyVault.VaultAccessPolicy.id
       description: Resource ID.
@@ -791,7 +741,9 @@ script:
       required: false
       secret: false
     deprecated: false
-    description: List keys in the specified vault.
+    description: List keys in the specified vault. Please note that the bigger the
+      limit, the longer time you might wait for the result to retrieve (since an API
+      call is made for each 25 results).
     execution: false
     name: azure-key-vault-key-list
     outputs:
@@ -940,7 +892,9 @@ script:
       required: false
       secret: false
     deprecated: false
-    description: List secrets in a specified key vault.
+    description: List secrets in a specified key vault. Please note that the bigger
+      the limit, the longer time you might wait for the result to retrieve (since
+      an API call is made for each 25 results).
     execution: false
     name: azure-key-vault-secret-list
     outputs:
@@ -1100,7 +1054,11 @@ script:
       required: false
       secret: false
     deprecated: false
-    description: List certificates in a specified key vault.
+    description: List certificates in a specified key vault. Please note that the
+      bigger the limit, the longer time you might wait for the result to retrieve
+      (since an API call is made for each 25 results). Please note that the bigger
+      the limit, the longer time you might wait for the result to retrieve (since
+      an API call is made for each 25 results).
     execution: false
     name: azure-key-vault-certificate-list
     outputs:

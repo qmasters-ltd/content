@@ -496,6 +496,7 @@ class KeyVaultClient:
                     'description': private_link_description
                 }
             }
+
         return private_endpoint_connections
 
     def config_vault_properties(self, object_id: str, tenant_id: str, enabled_for_deployment: bool,
@@ -1223,11 +1224,11 @@ def main() -> None:
                                                 proxy=proxy)
 
         commands = {
-            'azure-key-vault-key-vault-create-or-update': create_or_update_key_vault_command,
-            'azure-key-vault-key-vault-delete': delete_key_vault_command,
-            'azure-key-vault-key-vault-get': get_key_vault_command,
-            'azure-key-vault-key-vault-list': list_key_vaults_command,
-            'azure-key-vault-key-vault-access-policy-update': update_access_policy_command,
+            'azure-key-vault-create-update': create_or_update_key_vault_command,
+            'azure-key-vault-delete': delete_key_vault_command,
+            'azure-key-vault-get': get_key_vault_command,
+            'azure-key-vault-list': list_key_vaults_command,
+            'azure-key-vault-access-policy-update': update_access_policy_command,
             'azure-key-vault-key-get': get_key_command,
             'azure-key-vault-key-list': list_keys_command,
             'azure-key-vault-key-delete': delete_key_command,
