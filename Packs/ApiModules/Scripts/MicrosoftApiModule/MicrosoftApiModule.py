@@ -299,6 +299,14 @@ class MicrosoftClient(BaseClient):
             return self._get_token_device_code(refresh_token, scope, integration_context)
         else:
             # by default, grant_type is CLIENT_CREDENTIALS
+            if self.multi_resource:
+                expires_in = -1  # init variable as an int
+                for resource in self.resources:
+                    self.resource = resource
+                    access_token, expires_in, refresh_token = self._get_self_deployed_token_client_credentials()
+                    self.resource_to_access_token[resource] = access_token
+                self.resource = ''
+                return '', expires_in, refresh_token
             return self._get_self_deployed_token_client_credentials(scope=scope)
 
     def _get_self_deployed_token_client_credentials(self, scope: Optional[str] = None) -> Tuple[str, int, str]:
