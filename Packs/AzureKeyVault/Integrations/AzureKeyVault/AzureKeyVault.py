@@ -1070,6 +1070,16 @@ def get_certificate_policy_command(client: KeyVaultClient, args: Dict[str, Any])
 
 
 def test_module(client: KeyVaultClient) -> None:
+    """
+     Test instance parameters validity.
+     Displays an appropriate message in case of invalid parameters.
+
+     Args:
+         client (KeyVaultClient):  Azure Key Vault API client.
+
+     Returns:
+         None
+     """
     try:
         client.ms_client.get_access_token(resource=MANAGEMENT_RESOURCE)
         client.ms_client.get_access_token(resource=VAULT_RESOURCE)
@@ -1086,16 +1096,27 @@ def test_module(client: KeyVaultClient) -> None:
 
 
 def fetch_credentials(client: KeyVaultClient) -> None:
+    """
+     Fetch credentials from a specified key vault and secret.
+
+     Args:
+         client (KeyVaultClient):  Azure Key Vault API client.
+
+     Returns:
+         None
+     """
     credentials = []
     key_vaults_to_fetch_from = argToList(demisto.params().get('key_vaults', []))
     secrets_to_fetch = argToList(demisto.params().get('secrets', []))
+
     if len(key_vaults_to_fetch_from) == 0:
         return_error('No key vaults to fetch secrets from were specified.')
     if len(secrets_to_fetch) == 0:
         return_error('No secrets were specified.')
+
     for key_vault in key_vaults_to_fetch_from:
         for secret in secrets_to_fetch:
-            secret_cred= client.get_secret_credentials(key_vault, secret)
+            secret_cred = client.get_secret_credentials(key_vault, secret)
             credentials += [secret_cred] if secret_cred else []
     demisto.credentials(credentials)
 
