@@ -15,6 +15,11 @@ configuration:
   name: tenant_id
   required: true
   type: 0
+- display: Use a self-deployed Azure application
+  hidden: false
+  name: self_deployed
+  required: false
+  type: 8
 - display: Subscription ID
   name: subscription_id
   required: true
@@ -23,12 +28,12 @@ configuration:
   name: resource_group_name
   required: true
   type: 0
-- display: Trust any certificate
+- display: Trust any certificate (not secure)
   hidden: false
   name: insecure
   required: false
   type: 8
-- display: Use system proxy
+- display: Use system proxy settings
   hidden: false
   name: proxy
   required: false
@@ -294,10 +299,22 @@ script:
       name: ip_rules
       required: false
       secret: false
-    - default: false
-      description: Permissions to storage accounts. Access policy property.
+    - auto: PREDEFINED
+      default: false
+      description: Permissions to storage accounts. If the Key Vault exists, you must
+        supply the previous storage permissions inorder to keep them the same. Access
+        policy property. Default value is [get,list,set,delete,backup,restore,recover].
       isArray: true
       name: storage
+      predefined:
+      - get
+      - list
+      - set
+      - delete
+      - backup
+      - restore
+      - recover
+      - purge
       required: false
       secret: false
     deprecated: false
@@ -471,9 +488,8 @@ script:
       secret: false
     deprecated: false
     description: The List operation gets information about the vaults associated with
-      the subscription. Please note that the bigger the limit, the longer time you
-      might wait for the result to retrieve (since an API call is made for each 25
-      results).
+      the subscription. For a limit greater than 25, more than one API call will be
+      required and the command might take longer time.
     execution: false
     name: azure-key-vault-list
     outputs:
@@ -636,7 +652,7 @@ script:
       secret: false
     deprecated: false
     description: Update access policy of a key vault in the specified subscription.
-    execution: false
+    execution: true
     name: azure-key-vault-access-policy-update
     outputs:
     - contextPath: AzureKeyVault.VaultAccessPolicy.id
@@ -741,9 +757,8 @@ script:
       required: false
       secret: false
     deprecated: false
-    description: List keys in the specified vault. Please note that the bigger the
-      limit, the longer time you might wait for the result to retrieve (since an API
-      call is made for each 25 results).
+    description: List keys in the specified vault. For a limit greater than 25, more
+      than one API call will be required and the command might take longer time.
     execution: false
     name: azure-key-vault-key-list
     outputs:
@@ -892,9 +907,8 @@ script:
       required: false
       secret: false
     deprecated: false
-    description: List secrets in a specified key vault. Please note that the bigger
-      the limit, the longer time you might wait for the result to retrieve (since
-      an API call is made for each 25 results).
+    description: List secrets in a specified key vault. For a limit greater than 25,
+      more than one API call will be required and the command might take longer time.
     execution: false
     name: azure-key-vault-secret-list
     outputs:
@@ -1054,11 +1068,9 @@ script:
       required: false
       secret: false
     deprecated: false
-    description: List certificates in a specified key vault. Please note that the
-      bigger the limit, the longer time you might wait for the result to retrieve
-      (since an API call is made for each 25 results). Please note that the bigger
-      the limit, the longer time you might wait for the result to retrieve (since
-      an API call is made for each 25 results).
+    description: List certificates in a specified key vault. For a limit greater than
+      25, more than one API call will be required and the command might take longer
+      time.
     execution: false
     name: azure-key-vault-certificate-list
     outputs:

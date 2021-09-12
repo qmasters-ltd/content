@@ -20,14 +20,16 @@ class KeyVaultClient:
     """
     Key Vault API Client
     """
+
     def __init__(self, tenant_id: str, client_id: str, client_secret: str,
-                 subscription_id: str, resource_group_name: str,
+                 subscription_id: str, resource_group_name: str, self_deployed: str,
                  verify: bool, proxy: bool):
         self._headers = {
             'Content-Type': 'application/json'
         }
+        self.self_deployed = self_deployed
         self.ms_client = MicrosoftClient(
-            self_deployed=True,
+            self_deployed=self_deployed,
             auth_id=client_id,
             enc_key=client_secret,
             token_retrieval_url=f'https://login.microsoftonline.com/{tenant_id}/oauth2/token',
@@ -45,8 +47,9 @@ class KeyVaultClient:
             ok_codes=(200, 201, 202, 204, 400, 401, 403, 404)
         )
 
-    def http_request(self, method:str, url_suffix:str=None, full_url:str=None, params:dict={}, data:dict=None,
-                     resource:str=MANAGEMENT_RESOURCE):
+    def http_request(self, method: str, url_suffix: str = None, full_url: str = None, params: dict = {},
+                     data: dict = None,
+                     resource: str = MANAGEMENT_RESOURCE):
         """
         Wrapper to MicrosoftClient http_request method.
 
@@ -78,11 +81,7 @@ class KeyVaultClient:
                                            enabled_for_template_deployment: bool,
                                            default_action: str, bypass: str, vnet_subnet_id: str,
                                            ignore_missing_vnet_service_endpoint: bool,
-                                           ip_rules: List[str], private_endpoint_connection_id: str,
-                                           private_endpoint_connection_etag: str,
-                                           provisioning_state, private_endpoint_id, private_link_status: str,
-                                           private_link_actions_required: str,
-                                           private_link_description: str) -> Dict[str, Any]:
+                                           ip_rules: List[str]) -> Dict[str, Any]:
         """
         Create or update a key vault in the specified subscription.
 
@@ -103,13 +102,6 @@ class KeyVaultClient:
             vnet_subnet_id:(str): Full resource id of a vnet subnet.
             ignore_missing_vnet_service_endpoint (bool): NRP will ignore the check.
             ip_rules List[str](optional) : The list of IP address rules.
-            private_endpoint_connection_id (str) : Connection ID.
-            private_endpoint_connection_etag (str): Connection Etag.
-            provisioning_state(str): Provisioning state.
-            private_endpoint_id: Full identifier of the private endpoint resource.
-            private_link_status (str): Connection status.
-            private_link_actions_required (str): Required actions.
-            private_link_description (str):Reason for approval or rejection.
 
         Returns:
             Dict[str, Any]: API response from Azure.
@@ -122,18 +114,10 @@ class KeyVaultClient:
         network_acl = self.config_vault_network_acls(default_action, bypass, vnet_subnet_id,
                                                      ignore_missing_vnet_service_endpoint, ip_rules)
         # private end point connection property
-        private_endpoint_connections = self.config_vault_private_endpoint_connections(private_endpoint_connection_id,
-                                                                                      private_endpoint_connection_etag,
-                                                                                      provisioning_state,
-                                                                                      private_endpoint_id,
-                                                                                      private_link_status,
-                                                                                      private_link_actions_required,
-                                                                                      private_link_description)
 
         properties = self.config_vault_properties(object_id, self.ms_client.tenant_id, enabled_for_deployment,
                                                   enabled_for_disk_encryption,
-                                                  enabled_for_template_deployment, sku_name, permissions, network_acl,
-                                                  private_endpoint_connections)
+                                                  enabled_for_template_deployment, sku_name, permissions, network_acl)
 
         data = {"location": location, "properties": properties}
 
@@ -457,53 +441,10 @@ class KeyVaultClient:
 
         return network_acls
 
-    def config_vault_private_endpoint_connections(self, private_endpoint_connection_id: str,
-                                                  private_endpoint_connection_etag: str,
-                                                  provisioning_state, private_endpoint_id, private_link_status: str,
-                                                  private_link_actions_required: str, private_link_description: str) -> \
-            Dict[str, Any]:
-        """
-        Configures the private_endpoint_connections property of a Key Vault .
-
-        Args:
-            private_endpoint_connection_id(str): Private endpoint connection ID.
-            private_endpoint_connection_etag (str): Modified whenever there is a change in the state of private endpoint.
-            provisioning_state (str): Provisioning state of the private endpoint connection.
-            private_endpoint_id(str): Full identifier of the private endpoint resource.
-            private_link_status (str): private link status.
-            private_link_actions_required (str): Required actions message.
-            private_link_description (str) The reason for approval or rejection.
-
-        Returns:
-            Dict[str,Any]: Private endpoint connections property.
-        """
-
-        private_endpoint_connections = {}
-
-        if private_endpoint_connections:
-            private_endpoint_connections['id'] = private_endpoint_connection_id
-        if private_endpoint_connection_etag:
-            private_endpoint_connections['etag'] = private_endpoint_connection_etag
-        if provisioning_state:
-            private_endpoint_connections['properties'] = {
-                'provisioningState': provisioning_state,
-                'privateEndpoint': {
-                    'id': private_endpoint_id
-                },
-                'privateLinkServiceConnectionState': {
-                    'status': private_link_status,
-                    'actionsRequired': private_link_actions_required,
-                    'description': private_link_description
-                }
-            }
-
-        return private_endpoint_connections
-
     def config_vault_properties(self, object_id: str, tenant_id: str, enabled_for_deployment: bool,
                                 enabled_for_disk_encryption: bool,
                                 enabled_for_template_deployment: bool, sku_name: str,
-                                permissions: Dict[str, Any], network_acls: Dict[str, Any],
-                                private_endpoint_connections: Dict[str, Any]):
+                                permissions: Dict[str, Any], network_acls: Dict[str, Any]):
 
         """
         Configures the properties of a vault on create or update command.
@@ -517,7 +458,6 @@ class KeyVaultClient:
             sku_name (str):Sku name.
             permissions (Dict[str,Any]): Key Vault access policy property.
             network_acls (Dict[str,Any]): Key Vault network acls property.
-            private_endpoint_connections (Dict[str,Any]): Key Vault private endpoint connections property.
 
         Returns:
             Dict[str,Any]: Key Vault properties.
@@ -532,8 +472,7 @@ class KeyVaultClient:
 
         if network_acls:
             properties["networkAcls"] = network_acls
-        if private_endpoint_connections:
-            properties["privateEndpointConnections"] = [private_endpoint_connections]
+
         return properties
 
     def get_entities_independent_of_pages(self, first_page: Dict[str, Any], limit: int, offset: int,
@@ -585,10 +524,10 @@ def create_or_update_key_vault_command(client: KeyVaultClient, args: Dict[str, A
     object_id = args.get('object_id')
 
     # access policy arguments
-    keys = argToList(args.get('keys', ['get', 'list', 'update', 'create','import', 'delete', 'recover', 'backup',
+    keys = argToList(args.get('keys', ['get', 'list', 'update', 'create', 'import', 'delete', 'recover', 'backup',
                                        'restore']))
 
-    secrets = argToList(args.get('secrets', ['get', 'list','set', 'delete', 'recover', 'backup', 'restore']))
+    secrets = argToList(args.get('secrets', ['get', 'list', 'set', 'delete', 'recover', 'backup', 'restore']))
     certificates = argToList(
         args.get('certificates', ['get', 'list', 'update', 'create', 'import', 'delete', 'recover', 'backup', 'restore',
                                   'managecontacts',
@@ -609,25 +548,11 @@ def create_or_update_key_vault_command(client: KeyVaultClient, args: Dict[str, A
         args.get('ignore_missing_vnet_service_endpoint', True))
     ip_rules = argToList(args.get('ip_rules'))
 
-    # private endpoint connection arguments
-    private_endpoint_connection_id = args.get('private_endpoint_connection_id')
-    private_endpoint_connection_etag = args.get(
-        'private_endpoint_connection_etag')
-    private_link_status = args.get('private_link_status')
-    private_link_description = args.get('private_link_description')
-    private_link_actions_required = args.get('private_link_actions_required')
-    provisioning_state = args.get('provisioning_state')
-    private_endpoint_id = args.get('private_endpoint_id')
-
     response = client.create_or_update_key_vault_request(vault_name, object_id, location, sku_name, keys,
                                                          secrets, certificates, storage, enabled_for_deployment,
                                                          enabled_for_disk_encryption, enabled_for_template_deployment,
                                                          default_action, bypass, vnet_subnet_id,
-                                                         ignore_missing_vnet_service_endpoint, ip_rules,
-                                                         private_endpoint_connection_id,
-                                                         private_endpoint_connection_etag,
-                                                         provisioning_state, private_endpoint_id, private_link_status,
-                                                         private_link_actions_required, private_link_description)
+                                                         ignore_missing_vnet_service_endpoint, ip_rules)
 
     readable_output = tableToMarkdown(f'{vault_name} Information',
                                       response,
@@ -714,7 +639,7 @@ def list_key_vaults_command(client: KeyVaultClient, args: Dict[str, Any]) -> Com
     offset = arg_to_number(args.get('offset', DEFAULT_OFFSET))
     response = client.list_key_vaults_request(limit, offset)
     readable_output = tableToMarkdown(
-        f'Key Vaults List\n Current page size: {limit}\n Showing page 1 out others that may exist',
+        'Key Vaults List',
         response,
         ['id', 'name', 'type', 'location'], removeNull=True,
         headerTransform=string_to_table_header)
@@ -792,8 +717,9 @@ def get_key_command(client: KeyVaultClient, args: Dict[str, Any]) -> CommandResu
     response['key_vault_name'] = vault_name
     readable_output = tableToMarkdown(f'{key_name} Information',
                                       outputs,
-                                      ['key_id', 'json_web_key_type', 'key_operations', 'create_time', 'update_time',
-                                       'expiry_time', 'enabled'],
+                                      ['key_id', 'enabled', 'json_web_key_type', 'key_operations', 'create_time',
+                                       'update_time',
+                                       'expiry_time'],
                                       removeNull=True,
                                       headerTransform=string_to_table_header)
 
@@ -834,9 +760,9 @@ def list_keys_command(client: KeyVaultClient, args: Dict[str, Any]) -> CommandRe
         key[VAULT_NAME_CONTEXT_FIELD] = vault_name
 
     readable_output = tableToMarkdown(
-        f'{vault_name} Keys List\n Current page size: {limit}\n Showing page 1 out others that may exist',
+        f'{vault_name} Keys List',
         readable_response,
-        ['key_id', 'managed', 'create_time', 'update_time', 'expiry_time'],
+        ['key_id', 'enabled', 'create_time', 'update_time', 'expiry_time'],
         removeNull=True,
         headerTransform=string_to_table_header)
     command_results = CommandResults(
@@ -913,10 +839,10 @@ def get_secret_command(client: KeyVaultClient, args: Dict[str, Any]) -> CommandR
     readable_response = {'secret_id': response.get('id'), 'managed': response.get('managed'),
                          'key_id': response.get('kid'),
                          **convert_attributes_to_readable(response.get('attributes').copy())}
-    response[VAULT_NAME_CONTEXT_FIELD]=vault_name
+    response[VAULT_NAME_CONTEXT_FIELD] = vault_name
     readable_output = tableToMarkdown(f'{secret_name} Information',
                                       readable_response,
-                                      ['secret_id', 'managed', 'create_time', 'update_time', 'expiry_time'],
+                                      ['secret_id', 'enabled', 'create_time', 'update_time', 'expiry_time'],
                                       removeNull=True,
                                       headerTransform=string_to_table_header)
     command_results = CommandResults(
@@ -957,9 +883,9 @@ def list_secrets_command(client: KeyVaultClient, args: Dict[str, Any]) -> Comman
         secret[VAULT_NAME_CONTEXT_FIELD] = vault_name
 
     readable_output = tableToMarkdown(
-        f'{vault_name} Secrets List\n Current page size: {limit}\n Showing page 1 out others that may exist',
+        f'{vault_name} Secrets List',
         readable_response,
-        ['secret_id', 'managed', 'create_time', 'update_time', 'expiry_time'], removeNull=True,
+        ['secret_id', 'enabled', 'create_time', 'update_time', 'expiry_time'], removeNull=True,
         headerTransform=string_to_table_header)
 
     command_results = CommandResults(
@@ -1037,7 +963,8 @@ def get_certificate_command(client: KeyVaultClient, args: Dict[str, Any]) -> Com
     response[VAULT_NAME_CONTEXT_FIELD] = vault_name
     readable_output = tableToMarkdown(f'{certificate_name} Information',
                                       readable_response,
-                                      ['certificate_id', 'create_time', 'update_time', 'expiry_time'], removeNull=True,
+                                      ['certificate_id', 'enabled', 'create_time', 'update_time', 'expiry_time'],
+                                      removeNull=True,
                                       headerTransform=string_to_table_header)
     command_results = CommandResults(
         outputs_prefix='AzureKeyVault.Certificate',
@@ -1078,9 +1005,9 @@ def list_certificates_command(client: KeyVaultClient, args: Dict[str, Any]) -> C
         })
         certificate[VAULT_NAME_CONTEXT_FIELD] = vault_name
     readable_output = tableToMarkdown(
-        f'{vault_name} Certificates List\n Current page size: {limit}\n Showing page 1 out others that may exist',
+        f'{vault_name} Certificates List',
         readable_response,
-        ['certificate_id', 'managed', 'create_time', 'update_time', 'expiry_time'],
+        ['certificate_id', 'enabled', 'create_time', 'update_time', 'expiry_time'],
         removeNull=True,
         headerTransform=string_to_table_header)
 
@@ -1131,9 +1058,19 @@ def get_certificate_policy_command(client: KeyVaultClient, args: Dict[str, Any])
 
 
 def test_module(client: KeyVaultClient) -> None:
-    client.ms_client.get_access_token(resource=MANAGEMENT_RESOURCE)
-    client.ms_client.get_access_token(resource=VAULT_RESOURCE)
-    return_results('ok')
+    try:
+        client.ms_client.get_access_token(resource=MANAGEMENT_RESOURCE)
+        client.ms_client.get_access_token(resource=VAULT_RESOURCE)
+        client.list_key_vaults_request(1, 0)
+        return_results('ok')
+    except Exception as error:
+        if 'InvalidSubscriptionId' in str(error):
+            return_results('Invalid subscription ID. Please verify your subscription ID.')
+        elif 'SubscriptionNotFound' in str(error):
+            return_results('The given subscription ID could not be found.')
+        elif 'perform action' in str(error):
+            return_results('The client does not have Key Vault permissions to the given resource group name'
+                           ' or the resource group name does not exist.')
 
 
 ####helper functions####
@@ -1197,12 +1134,13 @@ def convert_timestamp_to_readable_date(timestamp: int) -> str:
     Returns:
         str : Date in ISO 8601 format.
     """
-    return datetime.fromtimestamp(timestamp).isoformat()
+    return datetime.utcfromtimestamp(timestamp).isoformat()+'Z'
 
 
 def main() -> None:
     params: Dict[str, Any] = demisto.params()
     args: Dict[str, Any] = demisto.args()
+    self_deployed = params.get('self_deployed', False)
     verify_certificate: bool = not params.get('insecure', False)
     proxy = params.get('proxy', False)
 
@@ -1220,6 +1158,7 @@ def main() -> None:
                                                     'subscription_id', None),
                                                 resource_group_name=params.get(
                                                     'resource_group_name', None),
+                                                self_deployed=self_deployed,
                                                 verify=verify_certificate,
                                                 proxy=proxy)
 
@@ -1249,9 +1188,6 @@ def main() -> None:
 
     except Exception as e:
         return_error(str(e))
-
-
-
 
 
 from MicrosoftApiModule import *  # noqa: E402
