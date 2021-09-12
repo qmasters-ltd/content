@@ -503,6 +503,18 @@ class KeyVaultClient:
             return []
         return entities[offset:limit + offset]
 
+    def get_secret_credentials(self, key_vault_name: str, secret_name: str):
+        try:
+            response = self.get_secret_request(key_vault_name, secret_name, '')
+            secret_value = response['value']
+            return {
+                "user": secret_name,
+                "password": secret_value,
+                "name": secret_name
+            }
+        except Exception as error:
+            return None
+
 
 ''' INTEGRATIONS COMMANDS'''
 
@@ -1073,6 +1085,21 @@ def test_module(client: KeyVaultClient) -> None:
                            ' or the resource group name does not exist.')
 
 
+def fetch_credentials(client: KeyVaultClient) -> None:
+    credentials = []
+    key_vaults_to_fetch_from = argToList(demisto.params().get('key_vaults', []))
+    secrets_to_fetch = argToList(demisto.params().get('secrets', []))
+    if len(key_vaults_to_fetch_from) == 0:
+        return_error('No key vaults to fetch secrets from were specified.')
+    if len(secrets_to_fetch) == 0:
+        return_error('No secrets were specified.')
+    for key_vault in key_vaults_to_fetch_from:
+        for secret in secrets_to_fetch:
+            secret_cred= client.get_secret_credentials(key_vault, secret)
+            credentials += [secret_cred] if secret_cred else []
+    demisto.credentials(credentials)
+
+
 ####helper functions####
 def convert_attributes_to_readable(attributes: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -1134,7 +1161,7 @@ def convert_timestamp_to_readable_date(timestamp: int) -> str:
     Returns:
         str : Date in ISO 8601 format.
     """
-    return datetime.utcfromtimestamp(timestamp).isoformat()+'Z'
+    return datetime.utcfromtimestamp(timestamp).isoformat() + 'Z'
 
 
 def main() -> None:
@@ -1181,6 +1208,8 @@ def main() -> None:
 
         if command == 'test-module':
             test_module(client)
+        elif demisto.command() == 'fetch-credentials':
+            fetch_credentials(client)
         elif command in commands:
             return_results(commands[command](client, args))
         else:
