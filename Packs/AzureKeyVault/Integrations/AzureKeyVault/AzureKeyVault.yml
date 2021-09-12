@@ -254,9 +254,13 @@ script:
       secret: false
     - auto: PREDEFINED
       default: false
-      description: The default action when no rule from ipRules and from virtualNetworkRules
-        match. This is only used after the bypass property has been evaluated. Network
-        acl property.
+      description: The default action when no rule from ip_rules and from vnet_subnet_id
+        match . For example,  If no ip_rules and vnet_subnet_id arguments are defined,
+        the access to the key vault from any ip address or virtual network will be
+        accrodingly to the default_action value. If you wish to allow access only
+        from specific virtual network or ip address, use the ip_rules or the  vnet_subnet_id
+        arguments. This is only used after the bypass property has been evaluated.
+        Network acl property.
       isArray: false
       name: default_action
       predefined:
@@ -267,7 +271,9 @@ script:
     - auto: PREDEFINED
       default: false
       description: Tells what traffic can bypass network rules. This can be 'AzureServices'
-        or 'None'. Network acl property. Default value is 'AzureServices'.
+        or 'None'. For example, use 'AzureServices' if you wish to give azure services
+        access to key vault, although the default action is 'Deny' or the access for
+        a specific IP address. Network acl property. Default value is 'AzureServices'.
       isArray: false
       name: bypass
       predefined:
@@ -275,16 +281,17 @@ script:
       required: false
       secret: false
     - default: false
-      description: 'Full resource id of a vnet subnet. Example: ''/subscriptions/subid/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/test-vnet/subnets/subnet1''.
-        Network acl property.'
+      description: Full resource id of a vnet subnet. For example, for the subnet
+        ID "/subscriptions/subid/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/test-vnet/subnets/subnet1",
+        you can access the key vault from subnet1. Network acl property.
       isArray: false
       name: vnet_subnet_id
       required: false
       secret: false
     - default: false
       defaultValue: 'True'
-      description: Specifies whether NRP will ignore the check if parent subnet has
-        serviceEndpoints configured. Network Acl property.
+      description: Specifies whether the Network Resource Provider will ignore the
+        check if parent subnet has serviceEndpoints configured. Network Acl property.
       isArray: false
       name: ignore_missing_vnet_service_endpoint
       predefined:
@@ -292,9 +299,12 @@ script:
       required: false
       secret: false
     - default: false
-      description: The list of IP address rules. Each rule governing the accessibility
-        of a vault from a specific ip address or ip range. Example:" 1.1.1.1/32,2.2.2.2/32".
-        Network acl property.
+      description: 'The list of IP address rules. Each rule governing the accessibility
+        of a vault from a specific IP address or IP range. It can be a simple IP address
+        "124.56.78.91" or "124.56.78.0/24" -  all addresses that start with 124.56.78.
+        For example, for the IP addresses list: "124.56.78.91,124.56.78.92", you can
+        access the Key Vault from "124.56.78.91" or "124.56.78.92" IP addresses. Network
+        acl property.'
       isArray: true
       name: ip_rules
       required: false
@@ -319,7 +329,7 @@ script:
       secret: false
     deprecated: false
     description: Create or update a key vault in the specified subscription. If the
-      Key Vault exists, the updated key will overwrite the existing one.
+      Key Vault exists, the updated properties will overwrite the existing ones.
     execution: false
     name: azure-key-vault-create-update
     outputs:
@@ -565,7 +575,9 @@ script:
     - auto: PREDEFINED
       default: false
       description: "The name of the operation to do on the vault's access policy.\
-        \ \nSupports three operations: add,remove,replace."
+        \ \nSupports three operations: add,remove,replace. For example, to add \"\
+        get\", \"list\" permissions to the current secret permissions, use operation_kind=\"\
+        add\" and secrets=\"get,list\"."
       isArray: false
       name: operation_kind
       predefined:
@@ -576,8 +588,8 @@ script:
       secret: false
     - default: false
       description: The object ID of a user, service principal or security group in
-        the Azure Active Directory tenant for the vault. The object ID must be unique
-        for the list of access policies.
+        the Azure Active Directory tenant for the vault. The update regards only the
+        access policy for the specified object ID.
       isArray: false
       name: object_id
       required: true
@@ -651,7 +663,8 @@ script:
       required: false
       secret: false
     deprecated: false
-    description: Update access policy of a key vault in the specified subscription.
+    description: Update access policies in a key vault in the specified subscription.
+      The update regards only the access policy for the specified object ID.
     execution: true
     name: azure-key-vault-access-policy-update
     outputs:
@@ -681,7 +694,7 @@ script:
       type: Unknown
   - arguments:
     - default: false
-      description: Key Vault name of the key.
+      description: The name of the Key Vault where the key resides in.
       isArray: false
       name: vault_name
       required: true
@@ -737,7 +750,7 @@ script:
       type: Unknown
   - arguments:
     - default: false
-      description: Key Vault name of the key.
+      description: The name of the Key Vault where the keys reside in.
       isArray: false
       name: vault_name
       required: true
@@ -786,7 +799,7 @@ script:
       type: Number
   - arguments:
     - default: false
-      description: Key Vault name of the key.
+      description: The name of the Key Vault where the key resides in.
       isArray: false
       name: vault_name
       required: true
@@ -841,7 +854,7 @@ script:
       type: String
   - arguments:
     - default: false
-      description: Key Vault name of the secret.
+      description: The name of the Key Vault where the secret resides in.
       isArray: false
       name: vault_name
       required: true
@@ -889,7 +902,7 @@ script:
       type: String
   - arguments:
     - default: false
-      description: Key Vault name of the secret.
+      description: The name of the Key Vault where the secrets reside in.
       isArray: false
       name: vault_name
       required: true
@@ -942,7 +955,7 @@ script:
       type: Number
   - arguments:
     - default: false
-      description: Key Vault name.
+      description: The name of the Key Vault where the secret resides in.
       isArray: false
       name: vault_name
       required: true
@@ -986,7 +999,7 @@ script:
       type: String
   - arguments:
     - default: false
-      description: Key Vault name of the certificate.
+      description: The name of the Key Vault where the certificate resides in.
       isArray: false
       name: vault_name
       required: true
@@ -1049,7 +1062,7 @@ script:
       type: Unknown
   - arguments:
     - default: false
-      description: Key Vault name of the certificate.
+      description: The name of the Key Vault where the certificate reside in.
       isArray: false
       name: vault_name
       required: true
@@ -1091,7 +1104,7 @@ script:
       type: Date
   - arguments:
     - default: false
-      description: Key Vault name of the certificate.
+      description: The name of the Key Vault where the secret resides in.
       isArray: false
       name: vault_name
       required: true
@@ -1103,7 +1116,7 @@ script:
       required: true
       secret: false
     deprecated: false
-    description: List the policy for a certificate.
+    description: Get the policy of the specified certificate.
     execution: false
     name: azure-key-vault-certificate-policy-get
     outputs:
