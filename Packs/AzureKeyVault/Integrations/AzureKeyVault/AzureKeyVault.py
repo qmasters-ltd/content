@@ -724,13 +724,13 @@ def get_key_command(client: KeyVaultClient, args: Dict[str, Any]) -> CommandResu
     cloned_response = copy.deepcopy(response)
     outputs = copy.deepcopy(response)
     outputs['attributes'] = convert_time_attributes_to_iso(outputs['attributes'])
+    outputs['key_vault_name'] = vault_name
 
-    output_key_info = convert_key_info_to_readable(cloned_response['key'])
-    output_attrib = convert_attributes_to_readable(cloned_response['attributes'])
+    readable_key_info = convert_key_info_to_readable(cloned_response['key'])
+    readable_attrib = convert_attributes_to_readable(cloned_response['attributes'])
 
-    response['key_vault_name'] = vault_name
     readable_output = tableToMarkdown(f'{key_name} Information',
-                                      {**output_key_info, **output_attrib},
+                                      {**readable_key_info, **readable_attrib},
                                       ['key_id', 'enabled', 'json_web_key_type', 'key_operations', 'create_time',
                                        'update_time',
                                        'expiry_time'],
@@ -767,6 +767,7 @@ def list_keys_command(client: KeyVaultClient, args: Dict[str, Any]) -> CommandRe
     response = client.list_keys_request(vault_name, limit, offset)
     outputs = copy.deepcopy(response)
     readable_response = []
+
     for key in outputs:
         readable_response.append({
             'key_id': key.get('kid'), 'managed': key.get('managed'),
@@ -781,6 +782,7 @@ def list_keys_command(client: KeyVaultClient, args: Dict[str, Any]) -> CommandRe
         ['key_id', 'enabled', 'create_time', 'update_time', 'expiry_time'],
         removeNull=True,
         headerTransform=string_to_table_header)
+
     command_results = CommandResults(
         outputs_prefix='AzureKeyVault.Key',
         outputs_key_field='kid',
@@ -816,19 +818,17 @@ def delete_key_command(client: KeyVaultClient, args: Dict[str, Any]) -> CommandR
         outputs['scheduledPurgeDate'])
 
     readable_response = copy.deepcopy(outputs)
-
-    readable_response['recovery_id'] = readable_response['recoveryId']
-    readable_response['deleted_date'] = readable_response['deletedDate']
-    readable_response['scheduled_purge_date'] = readable_response['scheduledPurgeDate']
+    readable_response['keyId'] = readable_response['key']['kid']
 
     outputs['attributes'] = convert_time_attributes_to_iso(outputs['attributes'])
     outputs[VAULT_NAME_CONTEXT_FIELD] = vault_name
+
     readable_output = tableToMarkdown(f'Delete {key_name}',
-                                      {**readable_response, **convert_key_info_to_readable(readable_response['key'])},
-                                      ['key_id', 'recovery_id', 'deleted_date',
-                                       'scheduled_purge_date'],
+                                      readable_response,
+                                      ['keyId', 'recoveryId', 'deletedDate',
+                                       'scheduledPurgeDate'],
                                       removeNull=True,
-                                      headerTransform=string_to_table_header)
+                                      headerTransform=pascalToSpace)
     command_results = CommandResults(
         outputs_prefix='AzureKeyVault.Key',
         outputs_key_field='recoveryId',
@@ -864,6 +864,7 @@ def get_secret_command(client: KeyVaultClient, args: Dict[str, Any]) -> CommandR
                          'key_id': response.get('kid'),
                          **convert_attributes_to_readable(response.get('attributes').copy())}
     outputs[VAULT_NAME_CONTEXT_FIELD] = vault_name
+
     readable_output = tableToMarkdown(f'{secret_name} Information',
                                       readable_response,
                                       ['secret_id', 'enabled', 'create_time', 'update_time', 'expiry_time'],
@@ -950,16 +951,15 @@ def delete_secret_command(client: KeyVaultClient, args: Dict[str, Any]) -> Comma
         outputs['scheduledPurgeDate'])
 
     readable_response = copy.deepcopy(outputs)
-    readable_response['recovery_id'] = readable_response['recoveryId']
-    readable_response['deleted_date'] = readable_response['deletedDate']
-    readable_response['scheduled_purge_date'] = readable_response['scheduledPurgeDate']
     outputs['attributes'] = convert_time_attributes_to_iso(outputs['attributes'])
     outputs[VAULT_NAME_CONTEXT_FIELD] = vault_name
+
+    readable_response['secretId'] = readable_response.pop('id')
     readable_output = tableToMarkdown(f'Delete {secret_name}',
                                       readable_response,
-                                      ['id', 'recovery_id', 'deleted_date', 'scheduled_purge_date'
-                                       ], removeNull=True,
-                                      headerTransform=string_to_table_header)
+                                      ['secretId', 'recoveryId', 'deletedDate',
+                                       'scheduledPurgeDate'], removeNull=True,
+                                      headerTransform=pascalToSpace)
     command_results = CommandResults(
         outputs_prefix='AzureKeyVault.Secret',
         outputs_key_field='recoveryId',
@@ -993,9 +993,11 @@ def get_certificate_command(client: KeyVaultClient, args: Dict[str, Any]) -> Com
     outputs = copy.deepcopy(response)
     outputs['attributes'] = convert_time_attributes_to_iso(outputs['attributes'])
     outputs['policy']['attributes'] = convert_time_attributes_to_iso(outputs['policy']['attributes'])
+
     readable_response = {'certificate_id': response.get(
         'id'), **convert_attributes_to_readable(response.get('attributes').copy())}
     outputs[VAULT_NAME_CONTEXT_FIELD] = vault_name
+
     readable_output = tableToMarkdown(f'{certificate_name} Information',
                                       readable_response,
                                       ['certificate_id', 'enabled', 'create_time', 'update_time', 'expiry_time'],
@@ -1199,6 +1201,7 @@ def convert_key_info_to_readable(key_info: Dict[str, Any]) -> Dict[str, Any]:
 
     return key_info
 
+
 def convert_time_attributes_to_iso(attributes: Dict[str, Any]) -> Dict[str, Any]:
     """
     Convert attributes fields to be readable for the user.
@@ -1210,17 +1213,19 @@ def convert_time_attributes_to_iso(attributes: Dict[str, Any]) -> Dict[str, Any]
         Dict[str, Any] : attributes property with time fields in ISO 8601 format.
 
     """
-    time_attributes_fields = {'nbf' ,
-                                'exp',
-                                'created',
-                                'updated',
-                                }
+    time_attributes_fields = {'nbf',
+                              'exp',
+                              'created',
+                              'updated',
+                              }
 
     for field in attributes:
         if field in time_attributes_fields:
             attributes[field] = convert_timestamp_to_readable_date(attributes[field])
 
     return attributes
+
+
 def convert_timestamp_to_readable_date(timestamp: int) -> str:
     """
     Convert timestamp number to readable date.
