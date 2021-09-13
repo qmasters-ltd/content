@@ -44,7 +44,7 @@ def load_mock_response(file_name: str) -> str:
 def mock_client():
     return KeyVaultClient(tenant_id=TENANT_ID, client_id=CLIENT_ID, client_secret=CLIENT_SECRET,
                           subscription_id=SUBSCRIPTION_ID,
-                          resource_group_name=RESOURCE_GROUP_NAME, verify=False, proxy=False)
+                          resource_group_name=RESOURCE_GROUP_NAME,self_deployed=True, verify=False, proxy=False)
 
 
 def test_azure_key_vault_key_vault_create_or_update_command(requests_mock):
@@ -266,7 +266,7 @@ def test_azure_key_vault_key_delete_command(requests_mock):
     assert len(result.outputs) == 7
     assert result.outputs_prefix == 'AzureKeyVault.Key'
     assert result.outputs.get('recoveryId') == "https://test.vault.azure.net/deletedkeys/key_test"
-    assert result.outputs.get('deletedDate') == 1493942452
+    assert result.outputs.get('deletedDate') == "2017-05-05T00:00:52"
 
 
 def test_azure_key_vault_secret_list_command(requests_mock):
@@ -358,7 +358,7 @@ def test_azure_key_vault_secret_delete_command(requests_mock):
     assert result.outputs_prefix == 'AzureKeyVault.Secret'
     assert result.outputs.get('recoveryId') == "https://test.vault.azure.net/deletedsecrets/sec_test"
     assert result.outputs.get('key_vault_name') == VAULT_NAME
-    assert result.outputs.get('deletedDate') == 1493938433
+    assert result.outputs.get('deletedDate') == "2017-05-04T22:53:53"
 
 
 def test_azure_key_vault_certificate_list_command(requests_mock):
