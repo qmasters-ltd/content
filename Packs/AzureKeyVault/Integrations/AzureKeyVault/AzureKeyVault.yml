@@ -7,19 +7,19 @@ configuration:
   name: client_id
   required: true
   type: 0
-- display: Client Secret
+- display: Client Secret (only wheb using self-deployed Azure application)
   name: client_secret
-  required: true
+  required: false
   type: 4
-- display: Tenant ID
-  name: tenant_id
-  required: true
-  type: 0
 - display: Use a self-deployed Azure application
   hidden: false
   name: self_deployed
   required: false
   type: 8
+- display: Tenant ID
+  name: tenant_id
+  required: true
+  type: 0
 - display: Subscription ID
   name: subscription_id
   required: true
@@ -421,7 +421,7 @@ script:
     deprecated: false
     description: Delete the specified key vault.
     execution: true
-    name: azure-key-delete
+    name: azure-key-vault-delete
   - arguments:
     - default: false
       description: Key Vault name.
@@ -796,10 +796,10 @@ script:
     - contextPath: AzureKeyVault.Key.attributes.enabled
       description: Determines whether the object is enabled.
       type: Boolean
-    - contextPath: AzureKeyVault.Key.attributes.create_time
+    - contextPath: AzureKeyVault.Key.attributes.created
       description: Creation time in UTC.
       type: Date
-    - contextPath: AzureKeyVault.Key.attributes.update_time
+    - contextPath: AzureKeyVault.Key.attributes.updated
       description: Last updated time in UTC.
       type: Date
     - contextPath: AzureKeyVault.Key.attributes.recoveryLevel
@@ -1057,13 +1057,13 @@ script:
     - contextPath: AzureKeyVault.Certificate.attributes.enabled
       description: Determines whether the object is enabled.
       type: Boolean
-    - contextPath: AzureKeyVault.Certificate.attributes.expiry_time
+    - contextPath: AzureKeyVault.Certificate.attributes.exp
       description: Expiry date in UTC.
       type: Date
-    - contextPath: AzureKeyVault.Certificate.attributes.create_time
+    - contextPath: AzureKeyVault.Certificate.attributes.created
       description: Creation time in UTC.
       type: Date
-    - contextPath: AzureKeyVault.Certificate.attributes.update_time
+    - contextPath: AzureKeyVault.Certificate.attributes.updated
       description: Last updated time in UTC.
       type: Date
     - contextPath: AzureKeyVault.Certificate.attributes.recoveryLevel
@@ -1111,10 +1111,10 @@ script:
     - contextPath: AzureKeyVault.Certificate.attributes.enabled
       description: Determines whether the object is enabled.
       type: Boolean
-    - contextPath: AzureKeyVault.Certificate.attributes.create_time
+    - contextPath: AzureKeyVault.Certificate.attributes.created
       description: Creation time in UTC.
       type: Date
-    - contextPath: AzureKeyVault.Certificate.attributes.update_time
+    - contextPath: AzureKeyVault.Certificate.attributes.updated
       description: Last updated time in UTC.
       type: Date
   - arguments:

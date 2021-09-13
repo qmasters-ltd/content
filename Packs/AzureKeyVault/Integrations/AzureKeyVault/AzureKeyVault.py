@@ -5,9 +5,10 @@ from datetime import datetime
 import copy
 
 '''CONSTANTS'''
-APP_NAME = 'azure-key-vault'
+# APP_NAME = 'azure-key-vault'
+APP_NAME = 'ms-azure-sentinel'
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
-
+AUTHORIZATION_CODE = 'authorization_code'
 MANAGEMENT_RESOURCE = 'https://management.azure.com'
 VAULT_RESOURCE = 'https://vault.azure.net'
 VAULT_NAME_CONTEXT_FIELD = 'key_vault_name'
@@ -33,7 +34,6 @@ class KeyVaultClient:
             auth_id=client_id,
             enc_key=client_secret,
             token_retrieval_url=f'https://login.microsoftonline.com/{tenant_id}/oauth2/token',
-            grant_type=CLIENT_CREDENTIALS,
             app_name=APP_NAME,
             base_url=f'https://management.azure.com/subscriptions/{subscription_id}/'
                      f'resourceGroups/{resource_group_name}/providers/Microsoft.KeyVault',
