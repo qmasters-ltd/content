@@ -27,7 +27,6 @@ class KeyVaultClient:
         self._headers = {
             'Content-Type': 'application/json'
         }
-        self.self_deployed = self_deployed
         self.ms_client = MicrosoftClient(
             self_deployed=True,
             auth_id=client_id,
