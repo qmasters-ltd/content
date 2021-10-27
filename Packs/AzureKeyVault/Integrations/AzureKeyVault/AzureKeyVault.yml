@@ -11,11 +11,6 @@ configuration:
   name: client_secret
   required: false
   type: 4
-- display: Use a self-deployed Azure application
-  hidden: false
-  name: self_deployed
-  required: false
-  type: 8
 - display: Tenant ID
   name: tenant_id
   required: true

@@ -22,14 +22,14 @@ class KeyVaultClient:
     """
 
     def __init__(self, tenant_id: str, client_id: str, client_secret: str,
-                 subscription_id: str, resource_group_name: str, self_deployed: bool,
+                 subscription_id: str, resource_group_name: str,
                  verify: bool, proxy: bool):
         self._headers = {
             'Content-Type': 'application/json'
         }
         self.self_deployed = self_deployed
         self.ms_client = MicrosoftClient(
-            self_deployed=self_deployed,
+            self_deployed=True,
             auth_id=client_id,
             enc_key=client_secret,
             token_retrieval_url=f'https://login.microsoftonline.com/{tenant_id}/oauth2/token',
@@ -1264,7 +1264,6 @@ def main() -> None:
     args: Dict[str, Any] = demisto.args()
     key_vaults_to_fetch_from = argToList(params.get('key_vaults', []))
     secrets_to_fetch = argToList(params.get('secrets', []))
-    self_deployed = params.get('self_deployed', False)
     verify_certificate: bool = not params.get('insecure', False)
     proxy = params.get('proxy', False)
     identifier = args.get('identifier')
@@ -1282,7 +1281,6 @@ def main() -> None:
                                                     'subscription_id', None),
                                                 resource_group_name=params.get(
                                                     'resource_group_name', None),
-                                                self_deployed=self_deployed,
                                                 verify=verify_certificate,
                                                 proxy=proxy)
 
