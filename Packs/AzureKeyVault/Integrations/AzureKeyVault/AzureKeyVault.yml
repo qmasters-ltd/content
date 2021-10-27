@@ -124,7 +124,9 @@ script:
       description: 'The object ID of a user, service principal or security group in
         the Azure Active Directory tenant for the vault. The object ID must be unique
         for the list of access policies: Any change in the access policy regards that
-        object ID, will override the exists one. '
+        object ID, will override the exists one. To retrieve it navigate in the Azure
+        Portal to App registrations > your registered application > click on manage
+        application in local directory > copy Object ID property.'
       isArray: false
       name: object_id
       required: true
