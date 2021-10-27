@@ -50,7 +50,7 @@ class KeyVaultClient:
                      data: dict = None,
                      resource: str = MANAGEMENT_RESOURCE):
         """
-        Wrapper to MicrosoftClient http_request method.
+        Wrapper to MicrosoftClient http_request methods.
 
         """
         params['api-version'] = '2019-09-01' if resource == MANAGEMENT_RESOURCE else '7.2'
