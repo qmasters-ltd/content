@@ -73,71 +73,40 @@ script:
       isArray: false
       name: location
       predefined:
-      - eastus
-      - eastus2
-      - southcentralus
-      - westus2
-      - australiaeast
-      - southeastasia
-      - northeurope
-      - uksouth
-      - westeurope
-      - centralus
       - northcentralus
-      - westus
-      - southafricanorth
-      - centralindia
+      - eastus
+      - northeurope
+      - westeurope
       - eastasia
+      - southeastasia
+      - eastus2
+      - centralus
+      - southcentralus
+      - westus
       - japaneast
-      - jioindiawest
-      - koreacentral
-      - canadacentral
-      - francecentral
-      - germanywestcentral
-      - norwayeast
-      - switzerlandnorth
-      - uaenorth
-      - brazilsouth
-      - centralusstage
-      - eastusstage
-      - eastus2stage
-      - northcentralusstage
-      - southcentralusstage
-      - westusstage
-      - westus2stage
-      - asia
-      - asiapacific
-      - australia
-      - brazil
-      - canada
-      - europe
-      - global
-      - india
-      - japan
-      - uk
-      - unitedstates
-      - eastasiastage
-      - southeastasiastage
-      - centraluseuap
-      - eastus2euap
-      - westcentralus
-      - westus3
-      - southafricawest
-      - australiacentral
-      - australiacentral2
-      - australiasoutheast
       - japanwest
-      - koreasouth
+      - australiaeast
+      - australiasoutheast
+      - brazilsouth
+      - centralindia
       - southindia
       - westindia
+      - canadacentral
       - canadaeast
-      - francesouth
-      - germanynorth
-      - norwaywest
-      - switzerlandwest
+      - uksouth
       - ukwest
-      - uaecentral
-      - brazilsoutheast
+      - westcentralus
+      - westus2
+      - koreacentral
+      - francecentral
+      - australiacentral
+      - uaenorth
+      - southafricanorth
+      - switzerlandnorth
+      - germanywestcentral
+      - norwayeast
+      - westus3
+      - jioindiawest
       required: false
       secret: false
     - auto: PREDEFINED
