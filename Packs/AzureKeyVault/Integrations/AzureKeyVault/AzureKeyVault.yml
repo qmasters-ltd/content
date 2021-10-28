@@ -7,7 +7,7 @@ configuration:
   name: client_id
   required: true
   type: 0
-- display: Client Secret (only when using a self-deployed Azure application)
+- display: Client Secret
   name: client_secret
   required: false
   type: 4
