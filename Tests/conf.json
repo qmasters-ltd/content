@@ -4515,6 +4515,13 @@
             "integrations": [
                 "TOPdesk"
             ]
+        },
+        {
+            "playbookID": "playbook-AzureRiskyUsers-Test",
+            "fromversion": "6.0.0",
+            "integrations": [
+                "AzureRiskyUsers"
+            ]
         }
     ],
     "skipped_tests": {
