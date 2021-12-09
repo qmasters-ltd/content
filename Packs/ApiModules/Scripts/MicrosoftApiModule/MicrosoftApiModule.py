@@ -114,7 +114,7 @@ class MicrosoftClient(BaseClient):
         Returns:
             Response from api according to resp_type. The default is `json` (dict or list).
         """
-        if 'ok_codes' not in kwargs:
+        if 'ok_codes' not in kwargs and not self._ok_codes:
             kwargs['ok_codes'] = (200, 201, 202, 204, 206, 404)
         token = self.get_access_token(resource=resource, scope=scope)
         default_headers = {
@@ -190,8 +190,7 @@ class MicrosoftClient(BaseClient):
             if self.epoch_seconds() < valid_until:
                 return access_token
 
-        auth_type = self.auth_type
-        if auth_type == OPROXY_AUTH_TYPE:
+        if self.auth_type == OPROXY_AUTH_TYPE:
             if self.multi_resource:
                 for resource_str in self.resources:
                     access_token, expires_in, refresh_token = self._oproxy_authorize(resource_str)
@@ -302,14 +301,6 @@ class MicrosoftClient(BaseClient):
             return self._get_token_device_code(refresh_token, scope, integration_context)
         else:
             # by default, grant_type is CLIENT_CREDENTIALS
-            if self.multi_resource:
-                expires_in = -1  # init variable as an int
-                for resource in self.resources:
-                    self.resource = resource
-                    access_token, expires_in, refresh_token = self._get_self_deployed_token_client_credentials()
-                    self.resource_to_access_token[resource] = access_token
-                self.resource = ''
-                return '', expires_in, refresh_token
             return self._get_self_deployed_token_client_credentials(scope=scope)
 
     def _get_self_deployed_token_client_credentials(self, scope: Optional[str] = None) -> Tuple[str, int, str]:
