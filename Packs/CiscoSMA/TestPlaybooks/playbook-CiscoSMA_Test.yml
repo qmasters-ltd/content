@@ -1,6 +1,5 @@
 id: CiscoSMA
-version: 14
-vcShouldKeepItemLegacyProdMachine: false
+version: -1
 name: CiscoSMA
 starttaskid: "0"
 tasks:
@@ -14,6 +13,7 @@ tasks:
       name: ""
       iscommand: false
       brand: ""
+      description: ''
     nexttasks:
       '#none#':
       - "1"
@@ -943,6 +943,7 @@ tasks:
       type: title
       iscommand: false
       brand: ""
+      description: ''
     separatecontext: false
     continueonerrortype: ""
     view: |-
@@ -973,3 +974,5 @@ view: |-
   }
 inputs: []
 outputs: []
+fromversion: "6.2.0"
+description: Test Playbook for Cisco SMA.

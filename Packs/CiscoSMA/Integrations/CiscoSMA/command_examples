@@ -1,0 +1,15 @@
+!cisco-sma-spam-quarantine-message-search start_date=2weeks end_date=now page=3 page_size=2
+!cisco-sma-spam-quarantine-message-get message_id=64
+!cisco-sma-spam-quarantine-message-release message_ids=65
+!cisco-sma-spam-quarantine-message-delete message_ids=66
+!cisco-sma-list-entry-get entry_type=safelist page=2 page_size=3 view_by=recipient order_by=recipient order_dir=desc
+!cisco-sma-list-entry-add entry_type=blocklist view_by=recipient recipient_addresses=test@test.com sender_list=t1@test.com,t2@test.com
+!cisco-sma-list-entry-append entry_type=blocklist recipient_addresses=test@test.com sender_list=t4@test.com
+!cisco-sma-list-entry-edit entry_type=blocklist view_by=recipient recipient_addresses=test@test.com sender_list=t5@test.com,t6@test.com
+!cisco-sma-list-entry-delete entry_type=blocklist view_by=recipient recipient_list=test@test.com
+!cisco-sma-message-search start_date=1month end_date=now page=3 page_size=2 subject_filter_operator=contains subject_filter_value=test
+!cisco-sma-message-details-get serial_number=423ADC9EBD9C5F1A7A64-B81D2582608C message_ids=322 injection_connection_id=10821 delivery_connection_id=4368
+!cisco-sma-message-amp-details-get message_ids=21 serial_number=42356DFA5D016457B182-3616BA148E19
+!cisco-sma-message-dlp-details-get message_ids=84 serial_number=423ADC9EBD9C5F1A7A64-B81D2582608C
+!cisco-sma-message-url-details-get message_ids=21 serial_number=42356DFA5D016457B182-3616BA148E19
+!cisco-sma-report-get start_date=2weeks end_date=now device_group_name=Hosted_Cluster report_type=mail_incoming_traffic_summary

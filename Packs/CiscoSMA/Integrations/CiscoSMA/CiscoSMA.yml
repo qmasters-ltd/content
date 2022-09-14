@@ -4,19 +4,18 @@ commonfields:
 name: CiscoSMA
 display: Cisco SMA
 category: Email Gateway
-description: The Security Management Appliance (SMA) is used to centralize services
-  from Email Security Appliances (ESAs) and Web Security Appliances (WSAs).
+description: The Security Management Appliance (SMA) is used to centralize services from Email Security Appliances (ESAs) and Web Security Appliances (WSAs).
 configuration:
 - name: base_url
   display: Server URL
-  defaultvalue: null
+  defaultvalue:
   type: 0
   required: true
   additionalinfo: "Base URL Example: https://XXX-sma1.eu.iphmx.com"
 - name: credentials
   display: Username
   required: true
-  defaultvalue: null
+  defaultvalue:
   type: 9
   additionalinfo: ""
   displaypassword: Password
@@ -38,64 +37,72 @@ configuration:
 - name: filter_by
   display: Filter by
   required: false
-  defaultvalue: null
+  defaultvalue:
   type: 15
   additionalinfo: Filter results to fetch by message field.
   options:
-    - from_address
-    - to_address
-    - subject
+  - from_address
+  - to_address
+  - subject
 - name: filter_operator
   display: Filter operator
   required: false
-  defaultvalue: null
+  defaultvalue:
   type: 15
   additionalinfo: Filter operator to fetch by message field.
   options:
-    - contains
-    - is
-    - begins_with
-    - ends_with
-    - does_not_contain
+  - contains
+  - is
+  - begins_with
+  - ends_with
+  - does_not_contain
 - name: filter_value
   display: Filter value
   required: false
-  defaultvalue: null
+  defaultvalue:
   type: 0
   additionalinfo: Filter value to fetch by message field.
 - name: recipient_filter_operator
   display: Recipient filter operator
   required: false
-  defaultvalue: null
+  defaultvalue:
   type: 15
   additionalinfo: Recipient filter operator to fetch by message field.
   options:
-    - contains
-    - is
-    - begins_with
-    - ends_with
-    - does_not_contain
+  - contains
+  - is
+  - begins_with
+  - ends_with
+  - does_not_contain
 - name: recipient_filter_value
   display: Recipient filter value
   required: false
-  defaultvalue: null
+  defaultvalue:
   type: 0
   additionalinfo: Filter value to fetch by message field.
 - name: proxy
-  display: Use system proxy
+  display: Use system proxy settings
   defaultvalue: 'false'
   type: 8
   required: false
 - name: insecure
-  display: Trust any certificate
+  display: Trust any certificate (not secure)
   defaultvalue: 'false'
   type: 8
   required: false
+- display: Incident type
+  name: incidentType
+  required: false
+  type: 13
+- display: Fetch incidents
+  name: isFetch
+  required: false
+  type: 8
 script:
   script: ''
   type: python
   subtype: python3
-  dockerimage: demisto/python3:3.10.5.31928
+  dockerimage: demisto/python3:3.10.7.33922
   isfetch: true
   commands:
   - name: cisco-sma-spam-quarantine-message-search
@@ -119,20 +126,20 @@ script:
       isArray: false
       auto: PREDEFINED
       predefined:
-        - from_address
-        - to_address
-        - subject
+      - from_address
+      - to_address
+      - subject
     - name: filter_operator
       description: Filter operator.
       required: false
       isArray: false
       auto: PREDEFINED
       predefined:
-        - contains
-        - is
-        - begins_with
-        - ends_with
-        - does_not_contain
+      - contains
+      - is
+      - begins_with
+      - ends_with
+      - does_not_contain
     - name: filter_value
       description: The value to search for. This is a user defined value. e.g. filterValue=abc.com.
       required: false
@@ -143,11 +150,11 @@ script:
       isArray: false
       auto: PREDEFINED
       predefined:
-        - contains
-        - is
-        - begins_with
-        - ends_with
-        - does_not_contain
+      - contains
+      - is
+      - begins_with
+      - ends_with
+      - does_not_contain
     - name: recipient_filter_value
       description: Recipient filter.
       required: false
@@ -158,18 +165,18 @@ script:
       isArray: false
       auto: PREDEFINED
       predefined:
-        - from_address
-        - date
-        - subject
-        - size
+      - from_address
+      - date
+      - subject
+      - size
     - name: order_dir
       description: Results order direction.
       required: false
       isArray: false
       auto: PREDEFINED
       predefined:
-        - asc
-        - desc
+      - asc
+      - desc
     - name: page
       description: |-
         Page number of paginated results.
@@ -261,8 +268,8 @@ script:
       isArray: false
       auto: PREDEFINED
       predefined:
-        - blocklist
-        - safelist
+      - blocklist
+      - safelist
     - name: page
       description: |-
         Page number of paginated results.
@@ -284,16 +291,16 @@ script:
       isArray: false
       auto: PREDEFINED
       predefined:
-        - recipient
-        - sender
+      - recipient
+      - sender
     - name: order_dir
       description: Results order direction.
       required: false
       isArray: false
       auto: PREDEFINED
       predefined:
-        - asc
-        - desc
+      - asc
+      - desc
     - name: view_by
       description: View results by.
       required: false
@@ -301,8 +308,8 @@ script:
       defaultValue: recipient
       auto: PREDEFINED
       predefined:
-        - recipient
-        - sender
+      - recipient
+      - sender
     - name: search
       description: |-
         Search for recipients or senders in blocklist/safelist with 'contains' operator.
@@ -344,8 +351,8 @@ script:
       isArray: false
       auto: PREDEFINED
       predefined:
-        - blocklist
-        - safelist
+      - blocklist
+      - safelist
     - name: view_by
       description: |-
         Add list entry by recipient/sender.
@@ -356,8 +363,8 @@ script:
       defaultValue: recipient
       auto: PREDEFINED
       predefined:
-        - recipient
-        - sender
+      - recipient
+      - sender
     - name: recipient_addresses
       description: A comma-separated list of recipients to add.
       required: false
@@ -384,8 +391,8 @@ script:
       isArray: false
       auto: PREDEFINED
       predefined:
-        - blocklist
-        - safelist
+      - blocklist
+      - safelist
     - name: view_by
       description: |-
         Append list entry by recipient/sender.
@@ -396,8 +403,8 @@ script:
       defaultValue: recipient
       auto: PREDEFINED
       predefined:
-        - recipient
-        - sender
+      - recipient
+      - sender
     - name: recipient_list
       description: A comma-separated list of recipients to append.
       required: false
@@ -424,8 +431,8 @@ script:
       isArray: false
       auto: PREDEFINED
       predefined:
-        - blocklist
-        - safelist
+      - blocklist
+      - safelist
     - name: view_by
       description: |-
         Edit list entry by recipient/sender.
@@ -436,8 +443,8 @@ script:
       defaultValue: recipient
       auto: PREDEFINED
       predefined:
-        - recipient
-        - sender
+      - recipient
+      - sender
     - name: recipient_list
       description: A comma-separated list of recipients to edit.
       required: false
@@ -464,8 +471,8 @@ script:
       isArray: false
       auto: PREDEFINED
       predefined:
-        - blocklist
-        - safelist
+      - blocklist
+      - safelist
     - name: view_by
       description: |-
         Delete list entry by recipient/sender.
@@ -476,8 +483,8 @@ script:
       defaultValue: recipient
       auto: PREDEFINED
       predefined:
-        - recipient
-        - sender
+      - recipient
+      - sender
     - name: recipient_list
       description: List of recipient/sender addresses to delete.
       required: false
@@ -523,9 +530,9 @@ script:
       isArray: false
       auto: PREDEFINED
       predefined:
-        - contains
-        - is
-        - begins_with
+      - contains
+      - is
+      - begins_with
     - name: sender_filter_value
       description: Sender filter value.
       required: false
@@ -536,9 +543,9 @@ script:
       isArray: false
       auto: PREDEFINED
       predefined:
-        - contains
-        - is
-        - begins_with
+      - contains
+      - is
+      - begins_with
     - name: recipient_filter_value
       description: Recipient filter value.
       required: false
@@ -549,9 +556,9 @@ script:
       isArray: false
       auto: PREDEFINED
       predefined:
-        - contains
-        - is
-        - begins_with
+      - contains
+      - is
+      - begins_with
     - name: subject_filter_value
       description: Subject filter value.
       required: false
@@ -562,9 +569,9 @@ script:
       isArray: false
       auto: PREDEFINED
       predefined:
-        - contains
-        - is
-        - begins_with
+      - contains
+      - is
+      - begins_with
     - name: attachment_name_value
       description: Attachment name value.
       required: false
@@ -1036,11 +1043,11 @@ script:
       defaultValue: mail_incoming_traffic_summary
       auto: PREDEFINED
       predefined:
-        - mail_incoming_traffic_summary
-        - reporting_system
-        - mail_vof_threat_summary
-        - mail_vof_specific_threat_summary
-        - mail_amp_threat_summary
+      - mail_incoming_traffic_summary
+      - reporting_system
+      - mail_vof_threat_summary
+      - mail_vof_specific_threat_summary
+      - mail_amp_threat_summary
     - name: custom_report_type
       description: |-
         Custom report type.
@@ -1078,8 +1085,8 @@ script:
       isArray: false
       auto: PREDEFINED
       predefined:
-        - asc
-        - desc
+      - asc
+      - desc
     - name: top
       description: Specify the number of records with the highest values to return.
       required: false
@@ -1098,8 +1105,8 @@ script:
       isArray: false
       auto: PREDEFINED
       predefined:
-        - begins_with
-        - is
+      - begins_with
+      - is
     outputs:
     - type: String
       contextPath: CiscoSMA.Report.type
@@ -1107,3 +1114,4 @@ script:
     - type: Number
       contextPath: CiscoSMA.Report.resultSet
       description: Report results summary.
+fromversion: "6.2.0"
