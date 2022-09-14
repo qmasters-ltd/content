@@ -1,0 +1,158 @@
+{
+	"brands": null,
+	"cacheVersn": 0,
+	"defaultIncidentType": "",
+	"definitionId": "",
+	"description": "",
+	"feed": false,
+	"fromServerVersion": "",
+	"id": "0fde0ada-560c-45d6-859b-2f2271662cf4",
+	"incidentSamples": null,
+	"indicatorSamples": null,
+	"instanceIds": null,
+	"itemVersion": "",
+	"keyTypeMap": {},
+	"locked": false,
+	"logicalVersion": 17,
+	"mapping": {
+		"Cisco SMA Spam Quarantine": {
+			"dontMapEventToLabels": false,
+			"internalMapping": {
+				"Cisco_SMA Attachments": {
+					"complex": {
+						"filters": [],
+						"root": "attributes",
+						"transformers": [
+							{
+								"args": {
+									"from": {
+										"value": {
+											"simple": "\"attachments\""
+										}
+									},
+									"to": {
+										"value": {
+											"simple": ","
+										}
+									}
+								},
+								"operator": "substring"
+							}
+						]
+					}
+				},
+				"Cisco_SMA Attriutes": {
+					"complex": {
+						"filters": [],
+						"root": "attributes",
+						"transformers": []
+					}
+				},
+				"Cisco_SMA Email From": {
+					"simple": "fromAddress"
+				},
+				"Cisco_SMA Email Message ID": {
+					"simple": "mid"
+				},
+				"Cisco_SMA Email Subject": {
+					"simple": "subject"
+				},
+				"Cisco_SMA Email To": {
+					"simple": "toAddress"
+				},
+				"Cisco_SMA Envelope Recipient": {
+					"complex": {
+						"filters": [],
+						"root": "attributes",
+						"transformers": [
+							{
+								"args": {
+									"from": {
+										"value": {
+											"simple": "\"envelopeRecipient\""
+										}
+									},
+									"to": {
+										"value": {
+											"simple": ","
+										}
+									}
+								},
+								"operator": "substring"
+							}
+						]
+					}
+				},
+				"Cisco_SMA Message Body": {
+					"simple": "messageBody"
+				}
+			}
+		},
+		"dbot_classification_incident_type_all": {
+			"dontMapEventToLabels": true,
+			"internalMapping": {
+				"Cisco_SMA Attriutes": {
+					"complex": {
+						"accessor": "attributes}",
+						"filters": [],
+						"root": "${incident.labels",
+						"transformers": []
+					}
+				},
+				"Cisco_SMA Email From": {
+					"simple": "attributes.fromAddress.[0]"
+				},
+				"Cisco_SMA Email Message ID": {
+					"simple": "mid"
+				},
+				"Cisco_SMA Email Size": {
+					"simple": "attributes.size"
+				},
+				"Cisco_SMA Email Subject": {
+					"simple": "attributes.subject"
+				},
+				"Cisco_SMA Email To": {
+					"simple": "attributes.toAddress.[0]"
+				},
+				"Cisco_SMA Envelope Recipient": {
+					"complex": {
+						"accessor": "attributes}",
+						"filters": [],
+						"root": "${incident.labels",
+						"transformers": [
+							{
+								"args": {
+									"from": {
+										"value": {
+											"simple": "\"envelopeRecipient\""
+										}
+									},
+									"to": {
+										"value": {
+											"simple": ","
+										}
+									}
+								},
+								"operator": "substring"
+							}
+						]
+					}
+				}
+			}
+		}
+	},
+	"name": "Cisco_SMA-incoming-mapper",
+	"nameRaw": "Cisco_SMA-incoming-mapper",
+	"packID": "",
+	"packName": "",
+	"propagationLabels": [
+		"all"
+	],
+	"sourceClassifierId": "",
+	"system": false,
+	"toServerVersion": "",
+	"transformer": {},
+	"type": "mapping-incoming",
+	"unclassifiedCases": null,
+	"version": -1
+}

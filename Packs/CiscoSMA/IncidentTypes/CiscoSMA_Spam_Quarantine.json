@@ -1,0 +1,43 @@
+[
+	{
+		"id": "Cisco SMA Spam Quarantine",
+		"version": 2,
+		"cacheVersn": 0,
+		"modified": "2022-09-12T11:41:04.168246377+03:00",
+		"packID": "",
+		"packName": "",
+		"itemVersion": "",
+		"fromServerVersion": "",
+		"toServerVersion": "",
+		"definitionId": "",
+		"vcShouldIgnore": false,
+		"vcShouldKeepItemLegacyProdMachine": false,
+		"commitMessage": "",
+		"shouldCommit": false,
+		"locked": false,
+		"name": "Cisco SMA Spam Quarantine",
+		"prevName": "Cisco SMA Spam Quarantine",
+		"color": "#EEC1C1",
+		"hours": 0,
+		"days": 0,
+		"weeks": 0,
+		"hoursR": 0,
+		"daysR": 0,
+		"weeksR": 0,
+		"system": false,
+		"readonly": false,
+		"default": false,
+		"autorun": false,
+		"preProcessingScript": "",
+		"closureScript": "",
+		"disabled": false,
+		"reputationCalc": 0,
+		"onChangeRepAlg": 0,
+		"layout": "e60d9e16-e5e8-4921-874e-54648e9a567c",
+		"detached": false,
+		"extractSettings": {
+			"mode": "Specific",
+			"fieldCliNameToExtractSettings": {}
+		}
+	}
+]
