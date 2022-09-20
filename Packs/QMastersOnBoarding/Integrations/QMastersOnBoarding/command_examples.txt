@@ -1,0 +1,3 @@
+!qmastersonboarding-alert-list
+!qmastersonboarding-alert-get alert_id=59490d48e57c281391e11c8d
+!qmastersonboarding-alert-create alert_type="ApplicationStores" sevirity="Low" is_closed=true

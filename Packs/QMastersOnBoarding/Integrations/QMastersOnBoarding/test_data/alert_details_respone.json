@@ -1,0 +1,14 @@
+{
+  "AlertDetails": {
+    "Severity": "Low",
+    "AlertType": "ApplicationStores"
+  },
+  "IsClosed": true,
+  "AlertId": "string",
+  "CreatedDate": "2022-09-18T14:05:25.409Z",
+  "AlertReporter": "System",
+  "AlertStatus": {
+    "State": "Updating",
+    "LastUpdateTime": "2022-09-18T14:05:25.409Z"
+  }
+}

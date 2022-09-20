@@ -1,0 +1,14 @@
+{
+    "AlertDetails": {
+        "Severity": "High",
+        "AlertType": "DataLeakage"
+    },
+    "IsClosed": false,
+    "AlertId": "59490d54e57c281391e11c97",
+    "CreatedDate": "2022-03-21T10:03:02.667000",
+    "AlertReporter": "System",
+    "AlertStatus": {
+        "State": "Completed",
+        "LastUpdateTime": "2022-03-21T10:03:02.667000"
+    }
+}

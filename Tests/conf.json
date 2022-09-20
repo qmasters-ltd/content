@@ -93,7 +93,7 @@
         },
         {
             "integrations": "AzureWAF",
-            "instance_names":"azure_waf_user_auth_instance",
+            "instance_names": "azure_waf_user_auth_instance",
             "playbookID": "Azure WAF - Test",
             "fromversion": "5.0.0"
         },
@@ -3302,7 +3302,10 @@
             "fromversion": "5.5.0"
         },
         {
-            "integrations": ["Zoom Feed", "Demisto REST API"],
+            "integrations": [
+                "Zoom Feed",
+                "Demisto REST API"
+            ],
             "playbookID": "FeedZoom_Test",
             "fromversion": "5.5.0"
         },
@@ -5203,11 +5206,16 @@
             "integrations": "Secneurx Analysis",
             "playbookID": "Detonate URL - SecneurX Anlaysis - Test",
             "fromversion": "6.2.0"
+        },
+        {
+            "integrations": "QMastersOnBoarding",
+            "playbookID": "TestPlaybookQMastersOnBoarding",
+            "fromversion": "6.2.0"
         }
     ],
     "skipped_tests": {
-        "playbook-CheckPointSandBlast_Test" : "Checkpoint playbook no license",
-        "playbook-BmcITSM-Test" : "issue with license CIAC-3776",
+        "playbook-CheckPointSandBlast_Test": "Checkpoint playbook no license",
+        "playbook-BmcITSM-Test": "issue with license CIAC-3776",
         "Panorama Query Logs - Test": "issues with firewall environment configuration - CIAC-3459",
         "palo_alto_firewall_test_pb": "issues with firewall environment configuration - CIAC-3459",
         "Test - CrowdStrike Falcon": "to merge https://github.com/demisto/content/pull/19250",
