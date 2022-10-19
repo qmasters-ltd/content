@@ -5206,7 +5206,7 @@
         },
         {
             "integrations": "CiscoSMA",
-            "playbookID": "Cisco SMA - Test",
+            "playbookID": "CiscoSMA",
             "fromversion": "6.2.0"
         }
     ],
