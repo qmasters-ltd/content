@@ -1,7 +1,7 @@
 <!-- HTML_DOC -->
 <h2>redOverview</h2>
 <hr>
-<p>Use the Cisco Threat Grid integration to manage and query threat feeds and samples.</p>
+<p>Deprecated. Use Cisco Secure Malware Analytics (Threat Grid) v2 instead.</p>
 <p>This integration was integrated and tested with Cisco Threat Grid v3.5.10.</p>
 <h2>Threat Grid Playbook</h2>
 <hr>
