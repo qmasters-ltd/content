@@ -13,7 +13,6 @@
         "fieldCliNameToExtractSettings": {},
         "mode": "All"
     },
-    "fromServerVersion": "",
     "hours": 0,
     "hoursR": 0,
     "id": "Cyberint Incident",
@@ -32,5 +31,5 @@
     "version": -1,
     "weeks": 0,
     "weeksR": 0,
-    "fromVersion": "5.0.0"
+    "fromVersion": "6.0.0"
 }
