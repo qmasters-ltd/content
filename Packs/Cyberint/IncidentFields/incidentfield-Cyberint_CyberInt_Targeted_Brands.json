@@ -1,9 +1,9 @@
 {
-    "id": "incident_cyberinttags",
+    "id": "incident_cyberinttargetedbrands",
     "version": -1,
-    "name": "CyberInt Tags",
+    "name": "CyberInt Targeted Brands",
     "ownerOnly": false,
-    "cliName": "cyberinttags",
+    "cliName": "cyberinttargetedbrands",
     "type": "multiSelect",
     "closeForm": false,
     "editForm": true,

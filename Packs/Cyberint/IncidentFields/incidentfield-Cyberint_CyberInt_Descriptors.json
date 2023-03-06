@@ -1,9 +1,9 @@
 {
-    "id": "incident_cyberinttargetedvector",
+    "id": "incident_cyberintdescriptors",
     "version": -1,
-    "name": "CyberInt Targeted Vector",
+    "name": "CyberInt Descriptors",
     "ownerOnly": false,
-    "cliName": "cyberinttargetedvector",
+    "cliName": "cyberintdescriptors",
     "type": "multiSelect",
     "closeForm": false,
     "editForm": true,

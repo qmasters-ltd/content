@@ -1,9 +1,9 @@
 {
-    "id": "incident_cyberintrelatedentities",
+    "id": "incident_cyberinttargetedvectors",
     "version": -1,
-    "name": "CyberInt Related entities",
+    "name": "CyberInt Targeted Vectors",
     "ownerOnly": false,
-    "cliName": "cyberintrelatedentities",
+    "cliName": "cyberinttargetedvectors",
     "type": "multiSelect",
     "closeForm": false,
     "editForm": true,

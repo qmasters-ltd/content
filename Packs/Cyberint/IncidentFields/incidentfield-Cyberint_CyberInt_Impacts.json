@@ -1,9 +1,9 @@
 {
-    "id": "incident_cyberinttargetedbrand",
+    "id": "incident_cyberintimpacts",
     "version": -1,
-    "name": "CyberInt Targeted Brand",
+    "name": "CyberInt Impacts",
     "ownerOnly": false,
-    "cliName": "cyberinttargetedbrand",
+    "cliName": "cyberintimpacts",
     "type": "multiSelect",
     "closeForm": false,
     "editForm": true,
