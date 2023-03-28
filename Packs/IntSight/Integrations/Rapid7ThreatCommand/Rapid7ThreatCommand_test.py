@@ -2272,13 +2272,13 @@ def test_search_mention_command(
     mock_client: Client,
 ):
     """
-    Scenario: Remove IOCs from blocklist.
+    Scenario: Search mentions.
     Given:
      - User has provided correct parameters.
     When:
-     - threat-command-ioc-blocklist-remove called.
+     - threat-command-mention-search called.
     Then:
-     - Ensure that IOCs was removed from blocklist.
+     - Ensure that the mentions sent to XSOAR.
     """
     from Rapid7ThreatCommand import search_mention_command
 
@@ -2305,13 +2305,13 @@ def test_usage_quota_enrichment_command(
     mock_client: Client,
 ):
     """
-    Scenario: Remove IOCs from blocklist.
+    Scenario: Get enrichment quota.
     Given:
      - User has provided correct parameters.
     When:
-     - threat-command-ioc-blocklist-remove called.
+     - threat-command-enrichment-quota-usage called.
     Then:
-     - Ensure that IOCs was removed from blocklist.
+     - Ensure that the quota sent to XSOAR.
     """
     from Rapid7ThreatCommand import usage_quota_enrichment_command
 
@@ -2327,13 +2327,13 @@ def test_list_mssp_user_command(
     mock_client: Client,
 ):
     """
-    Scenario: Remove IOCs from blocklist.
+    Scenario: List MSSP users.
     Given:
      - User has provided correct parameters.
     When:
-     - threat-command-ioc-blocklist-remove called.
+     - threat-command-mssp-user-list called.
     Then:
-     - Ensure that IOCs was removed from blocklist.
+     - Ensure that MSSP users listed.
     """
     from Rapid7ThreatCommand import list_mssp_user_command
 
@@ -2349,13 +2349,13 @@ def test_list_mssp_customer_command(
     mock_client: Client,
 ):
     """
-    Scenario: Remove IOCs from blocklist.
+    Scenario: List MSSP customers.
     Given:
      - User has provided correct parameters.
     When:
-     - threat-command-ioc-blocklist-remove called.
+     - threat-command-mssp-customer-list called.
     Then:
-     - Ensure that IOCs was removed from blocklist.
+     - Ensure that MSSP customers listed.
     """
     from Rapid7ThreatCommand import list_mssp_customer_command
 
@@ -2371,13 +2371,13 @@ def test_get_alert_csv_command(
     mock_client: Client,
 ):
     """
-    Scenario: List alert images.
+    Scenario: Get alert CSV file.
     Given:
      - User has provided correct parameters.
     When:
-     - threat-command-alert-image-list called.
+     - threat-command-alert-csv-get called.
     Then:
-     - Ensure that alert images listed.
+     - Ensure that CSV sent to XSOAR.
     """
     from Rapid7ThreatCommand import get_alert_csv_command
 
@@ -2449,13 +2449,13 @@ def test_finish_reputation_handler(
     response_path: str,
 ):
     """
-    Scenario: List alert images.
+    Scenario: Reputation commands.
     Given:
      - User has provided correct parameters.
     When:
-     - threat-command-alert-image-list called.
+     - reputation command called.
     Then:
-     - Ensure that alert images listed.
+     - Ensure that the command finished.
     """
     from Rapid7ThreatCommand import reputation_handler
 
@@ -2485,13 +2485,13 @@ def test_continue_reputation_handler(
     status: str,
 ):
     """
-    Scenario: List alert images.
+    Scenario: Reputation commands.
     Given:
      - User has provided correct parameters.
     When:
-     - threat-command-alert-image-list called.
+     - reputation command called.
     Then:
-     - Ensure that alert images listed.
+     - Ensure that the command called again.
     """
     from Rapid7ThreatCommand import reputation_handler
 
@@ -2520,11 +2520,11 @@ def test_fail_reputation_handler(
     status: str,
 ):
     """
-    Scenario: Add IOCs to blocklist.
+    Scenario: Reputation commands.
     Given:
      - User has provided correct parameters.
     When:
-     - threat-command-ioc-blocklist-add called.
+     - reputation command called.
     Then:
      - Ensure relevant error raised.
     """
@@ -2544,13 +2544,13 @@ def test_get_ioc_handler(
     mock_client: Client,
 ):
     """
-    Scenario: Remove IOCs from blocklist.
+    Scenario: Get IOC.
     Given:
      - User has provided correct parameters.
     When:
-     - threat-command-ioc-blocklist-remove called.
+     - threat-command-ioc-search called.
     Then:
-     - Ensure that IOCs was removed from blocklist.
+     - Ensure that the IOC sent to the user.
     """
     from Rapid7ThreatCommand import get_ioc_handler
 
@@ -2566,13 +2566,13 @@ def test_list_ioc_handler(
     mock_client: Client,
 ):
     """
-    Scenario: Remove IOCs from blocklist.
+    Scenario: List IOCs.
     Given:
      - User has provided correct parameters.
     When:
-     - threat-command-ioc-blocklist-remove called.
+     - threat-command-ioc-search.
     Then:
-     - Ensure that IOCs was removed from blocklist.
+     - Ensure that IOCs listed.
     """
     from Rapid7ThreatCommand import list_ioc_handler
 
@@ -2598,13 +2598,13 @@ def test_enrich_ioc_handler(
     response_path: str,
 ):
     """
-    Scenario: Remove IOCs from blocklist.
+    Scenario: Enrich IOC.
     Given:
      - User has provided correct parameters.
     When:
-     - threat-command-ioc-blocklist-remove called.
+     - threat-command-ioc-search called with enrichment flag.
     Then:
-     - Ensure that IOCs was removed from blocklist.
+     - Ensure that the command stop from running.
     """
     from Rapid7ThreatCommand import enrich_ioc_handler
 
@@ -2628,13 +2628,13 @@ def test_fail_enrich_ioc_handler(
     status: str,
 ):
     """
-    Scenario: Remove IOCs from blocklist.
+    Scenario: Enrich IOC.
     Given:
      - User has provided correct parameters.
     When:
-     - threat-command-ioc-blocklist-remove called.
+     - threat-command-ioc-search called with enrichment flag.
     Then:
-     - Ensure that IOCs was removed from blocklist.
+     - Ensure relevant error raised.
     """
     from Rapid7ThreatCommand import enrich_ioc_handler
 
@@ -2657,13 +2657,13 @@ def test_continue_enrich_ioc_handler(
     status: str,
 ):
     """
-    Scenario: Remove IOCs from blocklist.
+    Scenario: Enrich IOC.
     Given:
      - User has provided correct parameters.
     When:
-     - threat-command-ioc-blocklist-remove called.
+     - threat-command-ioc-search called with enrichment flag.
     Then:
-     - Ensure that IOCs was removed from blocklist.
+     - Ensure that polling command called again.
     """
     from Rapid7ThreatCommand import enrich_ioc_handler
 
@@ -2678,13 +2678,13 @@ def test_fetch_incidents(
     mock_client: Client,
 ):
     """
-    Scenario: Remove IOCs from blocklist.
+    Scenario: Fetch 2 incidents.
     Given:
      - User has provided correct parameters.
     When:
-     - threat-command-ioc-blocklist-remove called.
+     - fetch-incidents called.
     Then:
-     - Ensure that IOCs was removed from blocklist.
+     - Ensure that the incidents created successfully.
     """
     from Rapid7ThreatCommand import fetch_incidents
 

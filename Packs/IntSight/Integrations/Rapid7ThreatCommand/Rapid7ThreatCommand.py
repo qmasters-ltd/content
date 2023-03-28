@@ -4959,6 +4959,17 @@ def validate_search_mentions(args: dict[str, Any]):
 
 
 def validate_argument(args: dict[str, Any], key_: str, values: List[str]):
+    """
+    Validate for XSOAR input arguments.
+
+    Args:
+        args (dict[str, Any]): XSOAR arguments.
+        key_ (str): The key of the argument.
+        values (List[str]): Optional values.
+
+    Raises:
+        ValueError: In case that the input is wrong.
+    """
     if args.get(key_) and args[key_] not in values:
         raise ValueError(ReadableErrors.ARGUMENT.value.format(key_, values))
 
@@ -5037,7 +5048,16 @@ def test_module(client: Client) -> str:
     return "ok"
 
 
-def fetch_csv_handler(csv_response: Response, alert_id: str):
+def fetch_csv_handler(csv_response: Response, alert_id: str) -> dict[str, Any] | None:
+    """_summary_
+
+    Args:
+        csv_response (Response): CSV file response.
+        alert_id (str): Alert ID.
+
+    Returns:
+        dict[str, Any] | None: CSV attachment.
+    """
     if csv_response.status_code == HTTPStatus.OK:
         decoded_content = csv_response.content.decode()
         cr = csv.DictReader(decoded_content.splitlines(), delimiter=",")
@@ -5051,6 +5071,16 @@ def fetch_csv_handler(csv_response: Response, alert_id: str):
 def fetch_attachment_parser(
     file_name: str, data: bytes, content: List[dict[str, Any]] | None = None
 ) -> dict[str, Any]:
+    """_summary_
+
+    Args:
+        file_name (str): File name.
+        data (bytes): The data to add.
+        content (List[dict[str, Any]] | None, optional): CSV dictionary. Defaults to None.
+
+    Returns:
+        dict[str, Any]: Parsed attachment dictionary.
+    """
     image_data = fileResult(filename=file_name, data=data)
     return remove_empty_elements(
         {
