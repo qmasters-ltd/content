@@ -4856,15 +4856,7 @@ def validate_list_account_user(args: dict[str, Any]):
     Raises:
         ValueError: In case of wrong arguments.
     """
-    if (
-        args.get("user_type")
-        and args["user_type"] not in ArgumentValues.USER_TYPE.value
-    ):
-        raise ValueError(
-            ReadableErrors.ARGUMENT.value.format(
-                "user_type", ArgumentValues.USER_TYPE.value
-            )
-        )
+    validate_argument(args=args, key_="user_type", values=ArgumentValues.USER_TYPE.value)
 
 
 def validate_alert_ioc_severity(args: dict[str, Any]):
@@ -4877,12 +4869,7 @@ def validate_alert_ioc_severity(args: dict[str, Any]):
     Raises:
         ValueError: In case of wrong arguments.
     """
-    if args["severity"] not in ArgumentValues.ALERT_IOC_SEVERITY.value:
-        raise ValueError(
-            ReadableErrors.ARGUMENT.value.format(
-                "severity", ArgumentValues.ALERT_IOC_SEVERITY.value
-            )
-        )
+    validate_argument(args=args, key_="severity", values=ArgumentValues.ALERT_IOC_SEVERITY.value)
 
 
 def validate_update_account_whitelist(args: dict[str, Any]):
@@ -4895,12 +4882,7 @@ def validate_update_account_whitelist(args: dict[str, Any]):
     Raises:
         ValueError: In case of wrong arguments.
     """
-    if args["is_whitelisted"] not in ArgumentValues.WHITELIST_STATUS.value:
-        raise ValueError(
-            ReadableErrors.ARGUMENT.value.format(
-                "is_whitelisted", ArgumentValues.BOOLEAN.value
-            )
-        )
+    validate_argument(args=args, key_="is_whitelisted", values=ArgumentValues.WHITELIST_STATUS.value)
 
 
 def validate_list_ioc(args: dict[str, Any]):
@@ -4929,33 +4911,9 @@ def validate_search_mentions(args: dict[str, Any]):
     """
     if not isinstance(arg_to_number(args["page_number"]), int):
         raise ValueError(ReadableErrors.NUMBER.value)
-    if (
-        args.get("source_type")
-        and args["source_type"] not in ArgumentValues.MENTION_SOURCE_TYPE.value
-    ):
-        raise ValueError(
-            ReadableErrors.ARGUMENT.value.format(
-                "source_type", ArgumentValues.MENTION_SOURCE_TYPE.value
-            )
-        )
-    if (
-        args.get("only_dark_web")
-        and args["only_dark_web"] not in ArgumentValues.BOOLEAN.value
-    ):
-        raise ValueError(
-            ReadableErrors.ARGUMENT.value.format(
-                "only_dark_web", ArgumentValues.BOOLEAN.value
-            )
-        )
-    if (
-        args.get("highlight_tags")
-        and args["highlight_tags"] not in ArgumentValues.BOOLEAN.value
-    ):
-        raise ValueError(
-            ReadableErrors.ARGUMENT.value.format(
-                "highlight_tags", ArgumentValues.BOOLEAN.value
-            )
-        )
+    validate_argument(args=args, key_="source_type", values=ArgumentValues.MENTION_SOURCE_TYPE.value)
+    validate_argument(args=args, key_="only_dark_web", values=ArgumentValues.BOOLEAN.value)
+    validate_argument(args=args, key_="highlight_tags", values=ArgumentValues.BOOLEAN.value)
 
 
 def validate_argument(args: dict[str, Any], key_: str, values: List[str]):
@@ -5049,7 +5007,8 @@ def test_module(client: Client) -> str:
 
 
 def fetch_csv_handler(csv_response: Response, alert_id: str) -> dict[str, Any] | None:
-    """_summary_
+    """
+    Handle CSV response.
 
     Args:
         csv_response (Response): CSV file response.
@@ -5071,7 +5030,8 @@ def fetch_csv_handler(csv_response: Response, alert_id: str) -> dict[str, Any] |
 def fetch_attachment_parser(
     file_name: str, data: bytes, content: List[dict[str, Any]] | None = None
 ) -> dict[str, Any]:
-    """_summary_
+    """
+    Prase attachment response to XSOAR incident.
 
     Args:
         file_name (str): File name.

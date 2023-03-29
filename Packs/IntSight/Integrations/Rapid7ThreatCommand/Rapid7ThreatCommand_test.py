@@ -2168,7 +2168,7 @@ def test_fail_update_account_whitelist_command(
     with pytest.raises(ValueError) as error_info:
         update_account_whitelist_command(mock_client, args)
     assert ReadableErrors.ARGUMENT.value.format(
-        "is_whitelisted", ArgumentValues.BOOLEAN.value
+        "is_whitelisted", ArgumentValues.WHITELIST_STATUS.value
     ) == str(error_info.value)
 
 
