@@ -13,19 +13,20 @@ configuration:
   type: 4
 - display: API Secret
   name: apiSecret
-  type: 4
   required: false
+  type: 4
 - display: Trust any certificate (not secure)
   name: insecure
-  type: 8
   required: false
+  type: 8
 - display: Use system proxy settings
   name: proxy
-  type: 8
   required: false
-description: Adds domains to Umbrella block list
+  type: 8
+description: Deprecated. Use Cisco Umbrella Cloud Security v2 instead.
 display: Cisco Umbrella Cloud Security
 name: Cisco Umbrella Cloud Security
+deprecated: true
 script:
   commands:
   - arguments:
@@ -133,7 +134,7 @@ script:
     - contextPath: Umbrella.Destinations.comment
       description: Comment associated with domain within destination list
       type: string
-  dockerimage: demisto/python3:3.10.12.63474
+  dockerimage: demisto/python3:3.10.11.54132
   runonce: false
   script: ''
   subtype: python3
