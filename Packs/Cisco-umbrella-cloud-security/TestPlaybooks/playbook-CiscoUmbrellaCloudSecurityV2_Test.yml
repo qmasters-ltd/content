@@ -1,7 +1,7 @@
-id: CiscoUmbrellaCloudSecurityV2
+id: CiscoUmbrellaCloudSecurityv2
 version: 7
 vcShouldKeepItemLegacyProdMachine: false
-name: CiscoUmbrellaCloudSecurityV2
+name: CiscoUmbrellaCloudSecurityv2
 starttaskid: "0"
 tasks:
   "0":
