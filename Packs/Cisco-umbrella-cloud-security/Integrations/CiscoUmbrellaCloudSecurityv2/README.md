@@ -52,8 +52,11 @@ Get destinations within a destination list. A destination is a URL, IP or fully 
 | Umbrella.Destinations.createdAt | Date | The date and time when the destination list was created. |
 
 #### Command example
+
 ```!umbrella-destinations-list destination_list_id=17425859 limit=3```
+
 #### Context Example
+
 ```json
 {
     "Umbrella": {
@@ -87,6 +90,7 @@ Get destinations within a destination list. A destination is a URL, IP or fully 
 #### Human Readable Output
 
 >### Destination(s):
+
 >|Id|Destination|Type|Comment|Created At|
 >|---|---|---|---|---|
 >| 154 | www.facebook.com | domain | Added from XSOAR | 2023-07-19 18:21:11 |
@@ -129,7 +133,9 @@ Add a destination to a destination list. A destination is a URL, IPv4, CIDR or f
 | Umbrella.DestinationLists.meta.destinationCount | Number | The total number of destinations in a destination list. |
 
 #### Command example
+
 ```!umbrella-destination-add destination_list_id=17463731 destinations="www.LiorSabri.com,1.1.1.1"```
+
 #### Human Readable Output
 
 >The destination(s) "['www.LiorSabri.com', '1.1.1.1']" were successfully added to the destination list "17463731"
@@ -168,7 +174,9 @@ Remove a destination from a destination list. A destination is a URL, IP or full
 | Umbrella.DestinationLists.meta.destinationCount | Number | The total number of destinations in a destination list. |
 
 #### Command example
+
 ```!umbrella-destination-delete destination_list_id=17463733 destination_ids=25826```
+
 #### Human Readable Output
 
 >The destination(s) "[25826]" were successfully removed from the destination list "17463733"
@@ -176,7 +184,7 @@ Remove a destination from a destination list. A destination is a URL, IP or full
 ### umbrella-destination-lists-list
 
 ***
-Get destination lists. A list of destinations (for example, domain name or URL) to which you can block or allow access. For more information go to - https://docs.umbrella.com/deployment-umbrella/docs/working-with-destination-lists.
+Get destination lists. A list of destinations (for example, domain name or URL) to which you can block or allow access.
 
 #### Base Command
 
@@ -213,8 +221,11 @@ Get destination lists. A list of destinations (for example, domain name or URL) 
 | Umbrella.DestinationLists.meta.applicationCount | Number | The total number or applications in a destination list. Applications are part of the total number of destinations in a destination list. |
 
 #### Command example
+
 ```!umbrella-destination-lists-list limit=3```
+
 #### Context Example
+
 ```json
 {
     "Umbrella": {
@@ -287,6 +298,7 @@ Get destination lists. A list of destinations (for example, domain name or URL) 
 #### Human Readable Output
 
 >### Destination List:
+
 >|Id|Name|Access|Is Global|Destination Count|
 >|---|---|---|---|---|
 >| 17463749 | Lior | allow | false | 1 |
@@ -297,7 +309,7 @@ Get destination lists. A list of destinations (for example, domain name or URL) 
 ### umbrella-destination-list-create
 
 ***
-Create a destination list. A list of destinations (for example, domain name or URL) to which you can block or allow access. Accepted types for destination list with the access "allow" are: DOMAIN, IPv4 and CIDR. Accepted types for destination list with the access "block" are: URL and DOMAIN. For more information go to - https://docs.umbrella.com/deployment-umbrella/docs/add-a-new-destination-list.
+Create a destination list. A list of destinations (for example, domain name or URL) to which you can block or allow access. Accepted types for destination list with the access "allow" are: DOMAIN, IPv4 and CIDR. Accepted types for destination list with the access "block" are: URL and DOMAIN.
 
 #### Base Command
 
@@ -332,8 +344,11 @@ Create a destination list. A list of destinations (for example, domain name or U
 | Umbrella.DestinationLists.meta.destinationCount | Number | The total number of destinations in a destination list. |
 
 #### Command example
+
 ```!umbrella-destination-list-create access=allow is_global=False name=LiorSBList bundle_type=WEB destinations="https://pokemon.com"```
+
 #### Context Example
+
 ```json
 {
     "Umbrella": {
@@ -360,6 +375,7 @@ Create a destination list. A list of destinations (for example, domain name or U
 #### Human Readable Output
 
 >### Destination List:
+
 >|Id|Name|Access|Is Global|Destination Count|
 >|---|---|---|---|---|
 >| 17464621 | LiorSBList | allow | false | 1 |
@@ -368,7 +384,7 @@ Create a destination list. A list of destinations (for example, domain name or U
 ### umbrella-destination-list-update
 
 ***
-Edit a destination list. A list of destinations (for example, domain name or URL) to which you can block or allow access. For more information go to - https://docs.umbrella.com/deployment-umbrella/docs/edit-a-destination-list.
+Edit a destination list. A list of destinations (for example, domain name or URL) to which you can block or allow access.
 
 #### Base Command
 
@@ -399,8 +415,11 @@ Edit a destination list. A list of destinations (for example, domain name or URL
 | Umbrella.DestinationLists.meta.destinationCount | Number | The total number of destinations in a destination list. |
 
 #### Command example
+
 ```!umbrella-destination-list-update destination_list_id=17463733 name=LiorUpdated```
+
 #### Context Example
+
 ```json
 {
     "Umbrella": {
@@ -427,6 +446,7 @@ Edit a destination list. A list of destinations (for example, domain name or URL
 #### Human Readable Output
 
 >### Destination List:
+
 >|Id|Name|Access|Is Global|Destination Count|
 >|---|---|---|---|---|
 >| 17463733 | LiorUpdated | allow | false | 0 |
@@ -435,7 +455,7 @@ Edit a destination list. A list of destinations (for example, domain name or URL
 ### umbrella-destination-list-delete
 
 ***
-Delete a destination list. A list of destinations (for example, domain name or URL) to which you can block or allow access. For more information go to - https://docs.umbrella.com/deployment-umbrella/docs/working-with-destination-lists.
+Delete a destination list. A list of destinations (for example, domain name or URL) to which you can block or allow access.
 
 #### Base Command
 
@@ -450,8 +470,11 @@ Delete a destination list. A list of destinations (for example, domain name or U
 #### Context Output
 
 There is no context output for this command.
+
 #### Command example
+
 ```!umbrella-destination-list-delete destination_list_id=17463733```
+
 #### Human Readable Output
 
 >The destination list "17463733" was successfully deleted
