@@ -90,8 +90,11 @@ class Client(BaseClient):
             auth=(self.api_key, self.api_secret),
         )
 
-        access_token = response['access_token']
-        self._headers['Authorization'] = f'Bearer {access_token}'
+        try:
+            access_token = response['access_token']
+            self._headers['Authorization'] = f'Bearer {access_token}'
+        except Exception as e:
+            raise DemistoException(f'Failed logging in: {response}') from e
 
     def _get_destination_payload(
         self,
@@ -313,28 +316,28 @@ class Client(BaseClient):
 
 
 @logger
-def bridge_old_command(
-    new_command: Callable[[Client, dict[str, Any]], CommandResults],
+def bridge_v1_to_v2(
+    v2_command: Callable[[Client, dict[str, Any]], CommandResults],
     client: Client,
     args: dict[str, Any],
 ) -> CommandResults:
     """
-    Bridge old command to new command.
+    Bridge commands from the v1 pack (not API) to v2 commands.
 
     Args:
-        new_command (Callable[[Client, dict[str, Any]], CommandResults]): The new command.
+        v2_command (Callable[[Client, dict[str, Any]], CommandResults]): The v2 command.
         client (Client): Session to Cisco Umbrella to run API requests.
         args (dict[str, Any]): Arguments passed down by the CLI to configure the request.
 
     Returns:
-        CommandResults: The result of the new command.
+        CommandResults: The result of v2 command.
     """
     args['destination_list_id'] = args.pop('destId', None)
     args['destinations'] = args.pop('domain', None) or args.pop('domains', None)
     args['destination_ids'] = args.pop('domainIds', None)
     args['limit'] = DEFAULT_LIMIT
 
-    return new_command(client, args)
+    return v2_command(client, args)
 
 
 @logger
@@ -395,6 +398,21 @@ def get_json_table(obj: OptionalDictOrList, json_transformer: JsonTransformer) -
     return get_json_table_for_dict(obj)
 
 
+def get_single_or_full_list(items: list) -> list | dict:
+    """Get a single item or a full list of items.
+
+    If the list contains only one item, return the item.
+    If the list contains more than one item, return the full list.
+
+    Args:
+        items (list): The list of items.
+
+    Returns:
+        list | dict: The single item or the full list of items.
+    """
+    return items[0] if len(items) == 1 else items
+
+
 @logger
 def handle_pagination(
     list_command: Callable[..., dict[str, Any]],
@@ -403,7 +421,7 @@ def handle_pagination(
     page_size: int | None = None,
     page: int | None = None,
     **kwargs,
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]] | dict[str, Any]]:
+) -> tuple[list[dict[str, Any]] | dict[str, Any], list[dict[str, Any]] | dict[str, Any]]:
     """Handles pagination for the given list_command.
 
     Args:
@@ -417,13 +435,14 @@ def handle_pagination(
         **kwargs: Keyword arguments passed down by the CLI to configure the request.
 
     Returns:
-        tuple[list[dict[str, Any]], list[dict[str, Any]] | dict[str, Any]]: A tuple containing the list of
-        items and raw responses, or a single item and raw response if page is None.
+        tuple[list[dict[str, Any]] | dict[str, Any], list[dict[str, Any]] | dict[str, Any]]:
+            A tuple containing the list of items and raw responses, or a single item and raw response if page is None.
     """
     remaining_items = page_size or limit
 
     if page:
         remaining_items = min(remaining_items, API_LIMIT)
+        demisto.debug(f'Calling list command with {args=}, {page=}, limit={remaining_items}')
         raw_response = list_command(*args, page=page, limit=remaining_items, **kwargs)
 
         return raw_response.get('data', []), raw_response
@@ -435,27 +454,32 @@ def handle_pagination(
 
     # Keep calling the API until the required amount of items have been met.
     while remaining_items > 0:
+        demisto.debug(f'Calling list command with {args=}, {page=}, limit={API_LIMIT}')
         raw_response = list_command(*args, page=page, limit=API_LIMIT, **kwargs)
 
         # If the API returned no items, we're done.
         if not (output := raw_response.get('data')):
+            demisto.debug(f'The API returned no items for {page=}, stopping')
             break
 
+        received_items = len(output)
+
         # If the API returned more than the required amount of items, we need to trim the output.
-        if remaining_items < API_LIMIT:
+        if remaining_items < received_items:
             output = output[:remaining_items]
 
         raw_responses.append(raw_response)
         outputs += output
 
         # If the API returned less than the required amount of items, we're done.
-        if (received_items := len(output)) < API_LIMIT:
+        if received_items < API_LIMIT:
+            demisto.debug(f'These are the last items in the API {page=}, stopping')
             break
 
         remaining_items -= received_items
         page += 1
 
-    return outputs, raw_responses
+    return (get_single_or_full_list(obj) for obj in (outputs, raw_responses))
 
 
 @logger
@@ -464,7 +488,7 @@ def find_destinations(
     destination_list_id: str,
     destinations: set[str] | None = None,
     destination_ids: set[str] | None = None,
-) -> tuple[list[dict[str, Any]] | dict[str, Any], list[dict[str, Any]]]:
+) -> tuple[list[dict[str, Any]] | dict[str, Any], list[dict[str, Any]] | dict[str, Any]]:
     """Fetches and returns destinations and their associated data from a given list_command callable.
 
     Args:
@@ -479,14 +503,14 @@ def find_destinations(
         ValueError: If both destinations and destination_ids weren't provided.
 
     Returns:
-        tuple[list[dict[str, Any]], list[dict[str, Any]]]: A tuple containing two lists:
-            one with the fetched data,
+        tuple[list[dict[str, Any]] | dict[str, Any], list[dict[str, Any]] | dict[str, Any]]:
+            A tuple containing two lists: one with the fetched data,
             and one with the raw responses from the list command.
     """
-    if not any([destinations, destination_ids]):
+    if not any((destinations, destination_ids)):
         raise ValueError('At least one of the arguments "destinations" or "destination_ids" must be provided.')
 
-    def check_and_discard(
+    def filter_out_non_target_items(
         item: str,
         target_items: set[str] | None,
         other_item: str,
@@ -508,7 +532,7 @@ def find_destinations(
         if not target_items:
             return False
 
-        if target_items and item in target_items:
+        if item in (target_items or ()):
             target_items.discard(item)
 
             if other_target_items:
@@ -527,24 +551,36 @@ def find_destinations(
     raw_responses: list[dict[str, Any]] = []
 
     while destinations or destination_ids:
+        demisto.debug(f'Calling list command with {destination_list_id=}, {page=}, limit={API_LIMIT}')
         raw_response = list_command(destination_list_id=destination_list_id, page=page, limit=API_LIMIT)
         items = raw_response.get('data', [])
 
         if not items:
+            demisto.debug(f'The API returned no items for {page=}, stopping')
             break
 
         raw_responses.append(raw_response)
 
         for item in items:
-            if check_and_discard(item['id'], destination_ids, item['destination'], destinations):
-                outputs.append(item)
-            elif check_and_discard(item['destination'], destinations, item['id'], destination_ids):
+            # Called twice to avoid duplicates if an item was given in ID and destination.
+            if filter_out_non_target_items(
+                item['id'],
+                destination_ids,
+                item['destination'],
+                destinations,
+            ) or filter_out_non_target_items(
+                item['destination'],
+                destinations,
+                item['id'],
+                destination_ids,
+            ):
                 outputs.append(item)
 
         if len(items) < API_LIMIT:
+            demisto.debug(f'These are the last items in the API {page=}, stopping')
             break
 
-    return outputs[0] if len(outputs) == 1 else outputs, raw_responses
+    return (get_single_or_full_list(obj) for obj in (outputs, raw_responses))
 
 
 @logger
@@ -843,7 +879,7 @@ def main() -> None:
 
     demisto.debug(f'Command being called is {command}')
 
-    commands = {
+    commands_v2 = {
         f'{INTEGRATION_COMMAND_PREFIX}-{DESTINATION}s-list': list_destinations_command,
         f'{INTEGRATION_COMMAND_PREFIX}-{DESTINATION}-add': add_destination_command,
         f'{INTEGRATION_COMMAND_PREFIX}-{DESTINATION}-delete': delete_destination_command,
@@ -853,7 +889,7 @@ def main() -> None:
         f'{INTEGRATION_COMMAND_PREFIX}-{DESTINATION_LIST}-delete': delete_destination_list_command,
     }
 
-    old_commands = {
+    commands_v1 = {
         f'{INTEGRATION_COMMAND_PREFIX}-get-{DESTINATION}-{DOMAIN}': list_destinations_command,
         f'{INTEGRATION_COMMAND_PREFIX}-get-{DESTINATION}-{DOMAIN}s': list_destinations_command,
         f'{INTEGRATION_COMMAND_PREFIX}-search-{DESTINATION}-{DOMAIN}s': list_destinations_command,
@@ -873,12 +909,12 @@ def main() -> None:
 
         if command == 'test-module':
             return_results(test_module(client))
-        elif command in commands:
+        elif command in commands_v2:
             client.login()
-            return_results(commands[command](client, args))
-        elif command in old_commands:
+            return_results(commands_v2[command](client, args))
+        elif command in commands_v1:
             client.login()
-            return_results(bridge_old_command(new_command=old_commands[command], client=client, args=args))
+            return_results(bridge_v1_to_v2(v2_command=commands_v1[command], client=client, args=args))
         else:
             raise NotImplementedError(f'{command} command is not implemented.')
 

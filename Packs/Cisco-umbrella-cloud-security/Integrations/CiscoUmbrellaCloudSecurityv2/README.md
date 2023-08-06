@@ -1,5 +1,5 @@
 Cisco Umbrella is a cloud security platform providing the first line of defense against internet threats. It uses DNS-layer security to block malicious requests before a connection is established, offering protection against malware, ransomware, phishing, and more. It offers real-time reporting, integrates with other Cisco solutions for layered security, and uses machine learning to uncover and predict threats.
-This integration was integrated and tested with version 2 of Cisco Umbrella Cloud Security
+This integration was tested with version 2 of Cisco Umbrella Cloud Security
 
 ## Configure Cisco Umbrella Cloud Security on Cortex XSOAR
 
