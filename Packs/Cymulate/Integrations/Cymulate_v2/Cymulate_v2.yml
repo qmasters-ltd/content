@@ -32,6 +32,17 @@ configuration:
   - lateral-movement
   type: 16
   required: false
+- display: Environment IDs
+  name: environment_ids
+  type: 0
+  required: false
+  additionalinfo: Comma-separated list of environment IDs to fetch categories for, if empty the default environment will be fetched, for all existing environment input `all`.
+- display: Filter Repeated Penetrations
+  name: filter_repeated_penetrations
+  additionalinfo: Toggle to filter out events with repeated penetrations. Relevant only to "exfiltration" fetch category. When active, only incidents with the initial penetration will be included.
+  type: 8
+  required: false
+  defaultvalue: 'true'
 - display: Incident type
   name: incidentType
   type: 13

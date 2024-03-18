@@ -1,11 +1,10 @@
-from datetime import date
-from typing import Any
-
 import copy
 import json
 import traceback
-import urllib3
+from datetime import date
+from typing import Any
 
+import urllib3
 from CommonServerPython import *  # pylint: disable=unused-wildcard-import
 
 # Disable insecure warnings
@@ -128,31 +127,36 @@ class Client(BaseClient):
                                   headers=self.headers,
                                   resp_type='json')
 
-    def list_attacks(self, endpoint: str | None):
+    def list_attacks(self, endpoint: str | None, env: str | None = None):
         """Retrieves attacks by module.
 
         Args:
             endpoint (str): Cymulate's endpoint to list attacks by module.
+            env (str | None): The environment to fetch from. Defaults to None.
         """
         response = self._http_request(method='GET',
                                       url_suffix=f'/{endpoint}/attacks/technical',
-                                      headers=self.headers)
+                                      headers=self.headers,
+                                      params=assign_params(env=env))
         return response.get('data')
 
     def list_attack_ids_by_date(self, endpoint: str | None, from_date: str | None,
-                                to_date: str | None = None):
+                                to_date: str | None = None,
+                                env: str | None = None):
         """Retrieves attack IDs by their dates.
 
         Args:
             endpoint (str): Cymulate's endpoint to list attacks.
             from_date (str): From which date to fetch data.
             to_date (str): End date to fetch data. If no argument is given, value will be now.
+            env (str | None): The environment to fetch from. Defaults to None.
         """
         to_date = to_date if to_date else date.today().strftime("%Y-%m-%d")
         response = self._http_request(method='GET',
                                       url_suffix=f'/{endpoint}/history/get-ids',
-                                      params={'fromDate': from_date,
-                                              'toDate': to_date},
+                                      params=remove_empty_elements({'fromDate': from_date,
+                                              'toDate': to_date,
+                                              'env': env}),
                                       headers=self.headers)
         return dict_safe_get(dict_object=response, keys=['data', 'attack'], return_type=list)
 
@@ -170,15 +174,17 @@ class Client(BaseClient):
                                       headers=self.headers)
         return response.get('data')
 
-    def list_attack_ids(self, endpoint: str | None):
+    def list_attack_ids(self, endpoint: str | None, env: str | None = None):
         """Retrieves all attack IDs.
 
         Args:
             endpoint (str): The Cymulate endpoint to list attacks.
+            env (str | None): The environment to fetch from. Defaults to None.
         """
         response = self._http_request(method='GET',
                                       url_suffix=f'/{endpoint}/ids',
-                                      headers=self.headers)
+                                      headers=self.headers,
+                                      params=assign_params(env=env))
         return response.get('data')
 
     def get_attack_by_id(self, endpoint: str | None, attack_id: str | None):
@@ -211,8 +217,32 @@ class Client(BaseClient):
                                   headers=self.headers,
                                   params={'id': attack_id})
 
+    def list_environments(self):
+        """Retrieves all environments."""
+        response = self._http_request(method='GET',
+                                      url_suffix='/environments/',
+                                      headers=self.headers)
+        return response.get('data')
+
 
 ''' HELPER FUNCTIONS '''
+
+
+def get_environments(client: Client, environments: str | None) -> list[str]:
+    """If environments is set to 'all' fetch all the environment IDs from the server, otherwise parse it to a list.
+
+    Args:
+        client (Client): Cymulate Client.
+        environments (str | None): Contains: 'all', comma-separated IDs or None.
+
+    Returns:
+        list[str]: A list of environment IDs.
+    """
+    if environments == 'all':
+        response = client.list_environments()
+        return [environment['id'] for environment in response]
+
+    return argToList(environments)
 
 
 def extract_status_commands_output(result: dict) -> dict:
@@ -265,15 +295,19 @@ def validate_timestamp(timestamp: Any) -> bool:
     return False
 
 
-def get_alerts_by_module(client: Client, module_name: str,
-                         last_fetch: int) -> tuple[List[Any], int, int, int]:
+def get_alerts_by_module(client: Client, module_name: str, environment_id: str | None,
+                         last_fetch: int, filter_repeated_penetrations: bool) -> tuple[List[Any], int, int, int]:
     """Helper function to retrieves raw data from the API according to the module currently fetched,
     and using format_incidents() function to format the raw data into XSOAR incident format.
 
     Args:
         client (Client): Cymulate client.
         module_name (str): The module we are currently fetching.
+        environment_id (str | None): The environment ID to fetch data from.
         last_fetch (int): Timestamp in milliseconds on when to start fetching incidents.
+        filter_repeated_penetrations (bool): Filter out events with repeated penetrations.
+            Relevant only to "exfiltration" fetch category.
+            When active, only incidents with the initial penetration will be included.
 
     Returns:
         list: incidents,
@@ -286,16 +320,17 @@ def get_alerts_by_module(client: Client, module_name: str,
     raw_data = []
     timestamp_endpoint = None
     event_offset = get_integration_context().get('offset', 0)
+    demisto.info(f"get_alerts_by_module [{environment_id=}]- {module_name=}")
 
     if module_name in ('web-gateway', 'exfiltration', 'endpoint-security'):
-        raw_data = client.list_attacks(ENDPOINT_DICT.get(module_name))
+        raw_data = client.list_attacks(ENDPOINT_DICT.get(module_name), environment_id)
 
     elif module_name == 'email-gateway':
-        raw_data = client.list_attacks(ENDPOINT_DICT.get(module_name))
+        raw_data = client.list_attacks(ENDPOINT_DICT.get(module_name), environment_id)
         timestamp_endpoint = 'Email_Received'
 
     elif module_name == 'waf':
-        id_data = client.list_attack_ids(module_name)
+        id_data = client.list_attack_ids(module_name, environment_id)
 
         # Extracting the attack data for each site ID.
         for cur_id in id_data:
@@ -303,7 +338,7 @@ def get_alerts_by_module(client: Client, module_name: str,
                                                     cur_id.get('Id')))
 
     elif module_name == 'kill-chain':
-        id_data = client.list_attack_ids(ENDPOINT_DICT.get(module_name))
+        id_data = client.list_attack_ids(ENDPOINT_DICT.get(module_name), environment_id)
 
         # Kill Chain endpoint returns IDs from all times so filter by time before creating incidents
         relevant_id_list = []
@@ -319,7 +354,7 @@ def get_alerts_by_module(client: Client, module_name: str,
 
     elif module_name == 'immediate-threats':
         from_date = timestamp_to_datestring(last_fetch, '%Y-%m-%d')
-        id_data = client.list_attack_ids_by_date(ENDPOINT_DICT.get(module_name), from_date)
+        id_data = client.list_attack_ids_by_date(ENDPOINT_DICT.get(module_name), from_date, env=environment_id)
 
         # Immediate threats endpoint returns IDs from all times so filter by time.
         relevant_id_list = []
@@ -337,7 +372,7 @@ def get_alerts_by_module(client: Client, module_name: str,
 
     elif module_name in ('phishing-awareness', 'lateral-movement'):
         from_date = timestamp_to_datestring(last_fetch, '%Y-%m-%d')
-        id_data = client.list_attack_ids_by_date(ENDPOINT_DICT.get(module_name), from_date)
+        id_data = client.list_attack_ids_by_date(ENDPOINT_DICT.get(module_name), from_date, env=environment_id)
 
         # Extracting the attack data for each site ID.
         site_id_list = format_id_list(id_data)
@@ -348,7 +383,7 @@ def get_alerts_by_module(client: Client, module_name: str,
         if module_name == 'phishing-awareness':
             timestamp_endpoint = 'Campaign_Start_Timestamp'
 
-    return format_incidents(raw_data, event_offset, last_fetch, module_name, timestamp_endpoint)
+    return format_incidents(raw_data, event_offset, last_fetch, module_name, timestamp_endpoint, filter_repeated_penetrations)
 
 
 def format_id_list(id_data_dict: dict) -> list:
@@ -373,7 +408,7 @@ def format_id_list(id_data_dict: dict) -> list:
 
 
 def format_incidents(events: list, event_offset: int, last_fetch: int, module_name: str,
-                     timestamp_endpoint: str = None) -> tuple[List[Any], int, int, int]:
+                     timestamp_endpoint: str = None, filter_repeated_penetrations: bool = True) -> tuple[List[Any], int, int, int]:
     """
     This function loops over the alerts list and create incidents from different events.
     For `Endpoint Security` and `Kill Chain` modules, if current event name is identical to previous
@@ -387,6 +422,9 @@ def format_incidents(events: list, event_offset: int, last_fetch: int, module_na
         module_name (str): Module name.
         timestamp_endpoint(str): What API endpoint represent the event timestamp. If None is given,
                                 timestamp endpoint from API can be 'Timestamp' or 'Attack_Timestamp'
+        filter_repeated_penetrations (bool): Filter out events with repeated penetrations.
+            Relevant only to "exfiltration" fetch category.
+            When active, only incidents with the initial penetration will be included.
 
     Returns:
         list: incidents,
@@ -399,7 +437,11 @@ def format_incidents(events: list, event_offset: int, last_fetch: int, module_na
     offset = event_offset
     alert_created_time = last_fetch
     max_alert_created_time = alert_created_time
+    demisto.info(f"format_incidents - {event_offset=} {last_fetch=} {module_name=} {timestamp_endpoint=}")
+
     for event in events[offset:]:
+        demisto.info(f"format_incidents - {event=}")
+        demisto.info(f"format_incidents - {(module_name in ('endpoint-security', 'kill-chain')) and (incidents and extract_event_name(event, module_name) == incidents[-1].get('name'))=}")
 
         # if current event name is identical to previous, then only update incident description.
         if (module_name in ('endpoint-security', 'kill-chain')) and \
@@ -436,41 +478,52 @@ def format_incidents(events: list, event_offset: int, last_fetch: int, module_na
 
         # The current event is new (has new name), then we need to build a new incident.
         else:
+            demisto.info(f"format_incidents - else - {event_counter=} >= {min(MAX_INCIDENTS_TO_FETCH, int(demisto.params().get('max_fetch', MAX_INCIDENTS_TO_FETCH)))} ? {event_counter >= min(MAX_INCIDENTS_TO_FETCH, int(demisto.params().get('max_fetch', MAX_INCIDENTS_TO_FETCH)))}")
+
             if event_counter >= min(MAX_INCIDENTS_TO_FETCH,
                                     int(demisto.params().get('max_fetch', MAX_INCIDENTS_TO_FETCH))):
                 break
 
             # Incrementing the event offset, regardless of whether new incident will be created.
             event_offset += 1
+            demisto.info(f"format_incidents - else - {(not event_status_changed(event))=}")
 
             # If attack status is identical to previous assessment status, or the current attack was
             # unsuccessful, we won't create incident.
-            if not event_status_changed(event):
+            if filter_repeated_penetrations and not event_status_changed(event):
                 continue
+            demisto.info(f"format_incidents - else - {timestamp_endpoint=}")
 
             if timestamp_endpoint is None:
                 t_stamp = event.get('Timestamp') if event.get('Timestamp') else \
                     event.get('Attack_Timestamp')
             else:
                 t_stamp = event.get(timestamp_endpoint)
+            demisto.info(f"format_incidents - else - {t_stamp=} {validate_timestamp(t_stamp)=}")
 
             # Validate API timestamp.
             if validate_timestamp(t_stamp):
                 try:
+                    a = 1
                     alert_created_time = date_to_timestamp(t_stamp,
                                                            date_format=CY_GENERAL_DATE_FORMAT)
                 except Exception:
+                    a = 2
                     alert_created_time = date_to_timestamp(t_stamp,
                                                            date_format=CY_UNIQUE_DATE_FORMAT)
+                demisto.info(f"format_incidents - else - {a=} {alert_created_time=} >= {last_fetch=} ? {alert_created_time >= last_fetch}")
 
                 # If current alert was created since last fetch time, create XS0AR incident.
                 if alert_created_time >= last_fetch:
+                    demisto.info(f"format_incidents - else - {build_incident_dict(event, module_name, t_stamp)=}")
+
                     incidents.append(build_incident_dict(event, module_name, t_stamp))
                     event_counter += 1
 
                     # Keep track on the latest incident timestamp.
                     if alert_created_time > max_alert_created_time:
                         max_alert_created_time = alert_created_time
+    demisto.info(f"format_incidents - {event_offset=} {max_alert_created_time=} {len(events)=} {incidents=}")
 
     return incidents, event_offset, max_alert_created_time, len(events)
 
@@ -1576,9 +1629,11 @@ def list_simulations_command(client: Client, module: str, attack_id: str):
     return command_results
 
 
-def fetch_incidents(client: Client, last_run: dict[str, int],
+def fetch_incidents(client: Client, last_run: dict[str, Any],
                     first_fetch_time: int,
-                    fetch_categories: list) -> tuple[dict[str, int], List[dict]]:
+                    fetch_categories: list,
+                    environments: str | None,
+                    filter_repeated_penetrations: bool) -> tuple[dict[str, int], List[dict]]:
     """
     Retrieves new incidents every interval (default is 1 minute). The function will retrieve
     incidents from all selected modules chosen in the configuration page by the user.
@@ -1593,6 +1648,11 @@ def fetch_incidents(client: Client, last_run: dict[str, int],
                                         contains the timestamp in milliseconds on when to start
                                         fetching incidents.
         fetch_categories (list): a list of selected modules chosen in the configuration page.
+        environment_ids (list): a list of environment IDs to fetch categories from.
+            If empty all environment will be returned.
+        filter_repeated_penetrations (bool): Filter out events with repeated penetrations.
+            Relevant only to "exfiltration" fetch category.
+            When active, only incidents with the initial penetration will be included.
 
     Returns:
         A tuple containing two elements:
@@ -1600,59 +1660,70 @@ def fetch_incidents(client: Client, last_run: dict[str, int],
                         ``last_run`` on the next fetch.
                 incidents (``List[dict]``): List of incidents that will be created in XSOAR
     """
-    last_fetch = last_run.get('last_fetch', None)
-    last_fetch = int(last_fetch) if last_fetch else first_fetch_time * 1000
-    next_run = last_fetch
-    context = get_integration_context()
-    current_module = context.get('current_module', None)
+    demisto.info(f'fetch_incidents - starting run - {last_run=}')
+
+    last_fetch = int(last_run.get('last_fetch', first_fetch_time * 1000))
+    current_module = last_run.get('current_module')
+    current_environment = last_run.get('current_environment')
 
     if current_module:
-        incidents, offset, creation_time, total_simulated_events \
-            = get_alerts_by_module(client, current_module, last_fetch)
-
+        incidents, offset, creation_time, total_simulated_events = get_alerts_by_module(
+            client=client,
+            module_name=current_module,
+            environment_id=current_environment,
+            last_fetch=last_fetch,
+            filter_repeated_penetrations=filter_repeated_penetrations,
+        )
     else:
         incidents, offset, creation_time, total_simulated_events = [], 0, last_fetch, 0
 
+    demisto.info(f'fetch_incidents - {len(incidents)=}\n{offset=}\n{creation_time=}\n{total_simulated_events=}\n{incidents=}')
+    demisto.info(f'fetch_incidents - {creation_time=} {last_run.get("current_time", last_fetch)=}')
+
     # current_time will help us save current's module time, and update next_run accordingly.
-    if creation_time > context.get('current_time', last_fetch):
+    if creation_time > last_run.get('current_time', last_fetch):
         current_time = creation_time
     else:
-        current_time = context.get('current_time', last_fetch)
+        current_time = last_run.get('current_time', last_fetch)
 
-    # There are alerts left to fetch
+    demisto.info(f'fetch_incidents - {total_simulated_events=} {offset=}')
+    last_run['current_time'] = current_time
+
+    # Check whether there are more alerts left to fetch within the current environment.
     if total_simulated_events > offset:
-        integration_context = {'offset': offset,
-                               'current_module': context.get('current_module'),
-                               'modules': context.get('modules'),
-                               'current_time': current_time}
-        demisto.info(f'Fetching {current_module} module. Offset: {offset}/{total_simulated_events}')
-
-    # Finished fetching current module, checking if there are more modules to fetch.
+        last_run['offset'] = offset
+        demisto.info(f'Fetching {current_module=}, {current_environment=}. Offset: {offset}/{total_simulated_events}')
     else:
-        modules = context.get('modules', None)
-        if modules:
-            integration_context = {'offset': 0,
-                                   'current_module': modules[0],
-                                   'modules': modules[1:],
-                                   'current_time': current_time}
+        modules_queue = last_run.get('modules_queue')
+        environments_queue = last_run.get('environments_queue')
 
-        # Finished fetching all modules, re-initializing integration context.
+        last_run['offset'] = 0
+
+        if environments_queue:  # go to next environment
+            last_run['current_module'] = current_module or fetch_categories[0]
+            last_run['modules_queue'] = modules_queue or fetch_categories[1:]
+            last_run['current_environment'] = environments_queue[0]
+            last_run['environments_queue'] = environments_queue[1:]
         else:
-            integration_context = {'offset': 0,
-                                   'current_module': None,
-                                   'modules': fetch_categories,
-                                   'current_time': current_time}
+            # When the modules_queue is not exhausted, it moves to the next module in the queue.
+            # When the modules_queue is exhausted, it restarts using fetch_categories.
+            source_list = modules_queue or fetch_categories
+            last_run['current_module'], last_run['modules_queue'] = source_list[0], source_list[1:]
 
-            # Updating next run time after finish fetching all modules, if needed.
-            if current_time >= next_run:
-                next_run = current_time + 1000
-            else:
-                # Increment by 1 second, only if new incidents were fetched.
-                if incidents:
-                    next_run = next_run + 1000
+            # re-initialize environments queue
+            environment_list = get_environments(client, environments)
 
-    set_integration_context(integration_context)
-    return {'last_fetch': next_run}, incidents
+            last_run['current_environment'] = environment_list and environment_list[0]
+            last_run['environments_queue'] = environment_list and environment_list[1:]
+
+    # Updating next run time after finish fetching all modules, if needed.
+    if current_time >= last_fetch:
+        last_run['last_fetch'] = current_time + 1000
+    # Increment by 1 second, only if new incidents were fetched.
+    elif incidents:
+        last_run['last_fetch'] = last_fetch + 1000
+
+    return last_run, incidents
 
 
 def main() -> None:
@@ -1691,19 +1762,15 @@ def main() -> None:
             return_results(test_module(client))
 
         elif command == 'fetch-incidents':
-            fetch_categories = params.get('fetchCategory', None)
-
-            # Handles first fetch
-            if get_integration_context() is None:
-                set_integration_context({'offset': 0,
-                                         'current_module': None,
-                                         'modules': fetch_categories,
-                                         })
-
-            next_run, incidents = fetch_incidents(client=client,
-                                                  last_run=demisto.getLastRun(),
-                                                  first_fetch_time=first_fetch_timestamp,
-                                                  fetch_categories=fetch_categories)
+            next_run, incidents = fetch_incidents(
+                client=client,
+                last_run=demisto.getLastRun(),
+                first_fetch_time=first_fetch_timestamp,
+                fetch_categories=params.get('fetchCategory'),
+                environments=params.get('environment_ids'),
+                filter_repeated_penetrations=params.get('filter_repeated_penetrations', True),
+            )
+            demisto.info(f'setting last run {next_run=}')
             demisto.setLastRun(next_run)
             demisto.incidents(incidents)
 
