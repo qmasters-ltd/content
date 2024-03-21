@@ -319,7 +319,7 @@ def get_alerts_by_module(client: Client, module_name: str, environment_id: str |
 
     raw_data = []
     timestamp_endpoint = None
-    event_offset = get_integration_context().get('offset', 0)
+    event_offset = demisto.getLastRun().get('offset', 0)
     demisto.info(f"get_alerts_by_module [{environment_id=}]- {module_name=}")
 
     if module_name in ('web-gateway', 'exfiltration', 'endpoint-security'):
