@@ -320,7 +320,6 @@ def get_alerts_by_module(client: Client, module_name: str, environment_id: str |
     raw_data = []
     timestamp_endpoint = None
     event_offset = demisto.getLastRun().get('offset', 0)
-    demisto.info(f"get_alerts_by_module [{environment_id=}]- {module_name=}")
 
     if module_name in ('web-gateway', 'exfiltration', 'endpoint-security'):
         raw_data = client.list_attacks(ENDPOINT_DICT.get(module_name), environment_id)
@@ -437,12 +436,8 @@ def format_incidents(events: list, event_offset: int, last_fetch: int, module_na
     offset = event_offset
     alert_created_time = last_fetch
     max_alert_created_time = alert_created_time
-    demisto.info(f"format_incidents - {event_offset=} {last_fetch=} {module_name=} {timestamp_endpoint=}")
 
     for event in events[offset:]:
-        demisto.info(f"format_incidents - {event=}")
-        demisto.info(f"format_incidents - {(module_name in ('endpoint-security', 'kill-chain')) and (incidents and extract_event_name(event, module_name) == incidents[-1].get('name'))=}")
-
         # if current event name is identical to previous, then only update incident description.
         if (module_name in ('endpoint-security', 'kill-chain')) and \
                 (incidents and extract_event_name(event, module_name) == incidents[-1].get('name')):
@@ -478,52 +473,41 @@ def format_incidents(events: list, event_offset: int, last_fetch: int, module_na
 
         # The current event is new (has new name), then we need to build a new incident.
         else:
-            demisto.info(f"format_incidents - else - {event_counter=} >= {min(MAX_INCIDENTS_TO_FETCH, int(demisto.params().get('max_fetch', MAX_INCIDENTS_TO_FETCH)))} ? {event_counter >= min(MAX_INCIDENTS_TO_FETCH, int(demisto.params().get('max_fetch', MAX_INCIDENTS_TO_FETCH)))}")
-
             if event_counter >= min(MAX_INCIDENTS_TO_FETCH,
                                     int(demisto.params().get('max_fetch', MAX_INCIDENTS_TO_FETCH))):
                 break
 
             # Incrementing the event offset, regardless of whether new incident will be created.
             event_offset += 1
-            demisto.info(f"format_incidents - else - {(not event_status_changed(event))=}")
 
             # If attack status is identical to previous assessment status, or the current attack was
             # unsuccessful, we won't create incident.
             if filter_repeated_penetrations and not event_status_changed(event):
                 continue
-            demisto.info(f"format_incidents - else - {timestamp_endpoint=}")
 
             if timestamp_endpoint is None:
                 t_stamp = event.get('Timestamp') if event.get('Timestamp') else \
                     event.get('Attack_Timestamp')
             else:
                 t_stamp = event.get(timestamp_endpoint)
-            demisto.info(f"format_incidents - else - {t_stamp=} {validate_timestamp(t_stamp)=}")
 
             # Validate API timestamp.
             if validate_timestamp(t_stamp):
                 try:
-                    a = 1
                     alert_created_time = date_to_timestamp(t_stamp,
                                                            date_format=CY_GENERAL_DATE_FORMAT)
                 except Exception:
-                    a = 2
                     alert_created_time = date_to_timestamp(t_stamp,
                                                            date_format=CY_UNIQUE_DATE_FORMAT)
-                demisto.info(f"format_incidents - else - {a=} {alert_created_time=} >= {last_fetch=} ? {alert_created_time >= last_fetch}")
 
                 # If current alert was created since last fetch time, create XS0AR incident.
                 if alert_created_time >= last_fetch:
-                    demisto.info(f"format_incidents - else - {build_incident_dict(event, module_name, t_stamp)=}")
-
                     incidents.append(build_incident_dict(event, module_name, t_stamp))
                     event_counter += 1
 
                     # Keep track on the latest incident timestamp.
                     if alert_created_time > max_alert_created_time:
                         max_alert_created_time = alert_created_time
-    demisto.info(f"format_incidents - {event_offset=} {max_alert_created_time=} {len(events)=} {incidents=}")
 
     return incidents, event_offset, max_alert_created_time, len(events)
 
@@ -621,38 +605,41 @@ def build_incident_dict(event: dict, module_name: str, event_timestamp=None) -> 
     if event is None:
         return {}
 
-    incident_data = {
-        'cymulateStatus': event.get('Status'),
-        'module': event.get('Module'),
-        'user': event.get('User'),
-        'lastAction': event.get('Last_Action'),
-        'source': event.get('Source'),
-        'testCase': event.get('Test_Case'),
-        'attackType': event.get('Attack_Type'),
-        'attackVector': event.get('Attack_Vector'),
-        'templateName': event.get('Template_Name'),
-        'inProgress': event.get('InProgress'),
-        'url': event.get('Url'),
-        'input': event.get('Input'),
-        'sourceEmailAddress': event.get('Source_Email_Address'),
-        'agentless': event.get('Agentless'),
-        'analysis': event.get('Analysis'),
-        'command': event.get('Command'),
-        'description': extract_event_description(event),
-        'md5': event.get('MD5') if event.get('MD5') else event.get('Md5'),
-        'sha256': event.get('SHA256') if event.get('SHA256') else event.get('Sha256'),
-        'sha1': event.get('SHA1') if event.get('SHA1') else event.get('Sha1'),
+    incident_data = copy.deepcopy(event)
+    incident_data |= {
+        'cymulateStatus': incident_data.pop('Status', None),
+        'module': incident_data.pop('Module', None),
+        'user': incident_data.pop('User', None),
+        'lastAction': incident_data.pop('Last_Action', None),
+        'source': incident_data.pop('Source', None),
+        'testCase': incident_data.pop('Test_Case', None),
+        'attackType': incident_data.pop('Attack_Type', None),
+        'attackVector': incident_data.pop('Attack_Vector', None),
+        'templateName': incident_data.pop('Template_Name', None),
+        'inProgress': incident_data.pop('InProgress', None),
+        'url': incident_data.pop('Url', None),
+        'input': incident_data.pop('Input', None),
+        'sourceEmailAddress': incident_data.pop('Source_Email_Address', None),
+        'agentless': incident_data.pop('Agentless', None),
+        'analysis': incident_data.pop('Analysis', None),
+        'command': incident_data.pop('Command', None),
+        'description': (
+            incident_data.pop('Description', None)
+            or incident_data.pop('Phrase', None)
+            or incident_data.pop('Summery', None)
+        ),
+        'md5': incident_data.pop('MD5', None) or incident_data.pop('Md5', None),
+        'sha256': incident_data.pop('SHA256', None) or incident_data.pop('Sha256', None),
+        'sha1': incident_data.pop('SHA1', None) or incident_data.pop('Sha1', None),
     }
+    incident_data['mitigationDetails'] = (
+        incident_data.pop('Mitigation_Details', None)
+        or incident_data.pop('Mitigation', None)
+    )
 
-    mitigation = event.get('Mitigation_Details') if event.get('Mitigation_Details') else event.get(
-        'Mitigation')
-    if mitigation:
-        incident_data['mitigationDetails'] = mitigation
-
-    attack_payload = event.get('Attack_Payload')
-    if attack_payload and attack_payload.startswith('http'):
+    attack_payload: str = event.pop('Attack_Payload', '')
+    if attack_payload.startswith('http'):
         incident_data['url'] = attack_payload
-
     elif attack_payload:
         incident_data['attackType'] = attack_payload
 
@@ -1660,7 +1647,7 @@ def fetch_incidents(client: Client, last_run: dict[str, Any],
                         ``last_run`` on the next fetch.
                 incidents (``List[dict]``): List of incidents that will be created in XSOAR
     """
-    demisto.info(f'fetch_incidents - starting run - {last_run=}')
+    demisto.info(f'fetch_incidents - {last_run=}')
 
     last_fetch = int(last_run.get('last_fetch', first_fetch_time * 1000))
     current_module = last_run.get('current_module')
@@ -1677,25 +1664,25 @@ def fetch_incidents(client: Client, last_run: dict[str, Any],
     else:
         incidents, offset, creation_time, total_simulated_events = [], 0, last_fetch, 0
 
-    demisto.info(f'fetch_incidents - {len(incidents)=}\n{offset=}\n{creation_time=}\n{total_simulated_events=}\n{incidents=}')
-    demisto.info(f'fetch_incidents - {creation_time=} {last_run.get("current_time", last_fetch)=}')
-
     # current_time will help us save current's module time, and update next_run accordingly.
     if creation_time > last_run.get('current_time', last_fetch):
         current_time = creation_time
     else:
         current_time = last_run.get('current_time', last_fetch)
 
-    demisto.info(f'fetch_incidents - {total_simulated_events=} {offset=}')
+    demisto.debug(f'fetch_incidents - {total_simulated_events=} {offset=}')
     last_run['current_time'] = current_time
 
     # Check whether there are more alerts left to fetch within the current environment.
     if total_simulated_events > offset:
         last_run['offset'] = offset
-        demisto.info(f'Fetching {current_module=}, {current_environment=}. Offset: {offset}/{total_simulated_events}')
+        demisto.debug(f'Fetching {current_module=}, {current_environment=}. Offset: {offset}/{total_simulated_events}')
     else:
         modules_queue = last_run.get('modules_queue')
         environments_queue = last_run.get('environments_queue')
+        demisto.debug(
+            f"fetch_incidents - no more alerts left to fetch within module, {modules_queue=} {environments_queue=}"
+        )
 
         last_run['offset'] = 0
 
@@ -1770,7 +1757,7 @@ def main() -> None:
                 environments=params.get('environment_ids'),
                 filter_repeated_penetrations=params.get('filter_repeated_penetrations', True),
             )
-            demisto.info(f'setting last run {next_run=}')
+            demisto.debug(f'Setting last run to {next_run}')
             demisto.setLastRun(next_run)
             demisto.incidents(incidents)
 
