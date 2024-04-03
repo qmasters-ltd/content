@@ -637,7 +637,7 @@ def build_incident_dict(event: dict, module_name: str, event_timestamp=None) -> 
         or incident_data.pop('Mitigation', None)
     )
 
-    attack_payload: str = event.pop('Attack_Payload', '')
+    attack_payload: str = incident_data.pop('Attack_Payload', '')
     if attack_payload.startswith('http'):
         incident_data['url'] = attack_payload
     elif attack_payload:
