@@ -127,7 +127,7 @@ class Client(BaseClient):
                                   headers=self.headers,
                                   resp_type='json')
 
-    def list_attacks(self, endpoint: str | None, env: str | None = None):
+    def list_attacks(self, endpoint: str | None, env: str | None = None, sort: str = "desc"):
         """Retrieves attacks by module.
 
         Args:
@@ -137,7 +137,7 @@ class Client(BaseClient):
         response = self._http_request(method='GET',
                                       url_suffix=f'/{endpoint}/attacks/technical',
                                       headers=self.headers,
-                                      params=assign_params(env=env))
+                                      params=assign_params(env=env, sort=sort))
         return response.get('data')
 
     def list_attack_ids_by_date(self, endpoint: str | None, from_date: str | None,
